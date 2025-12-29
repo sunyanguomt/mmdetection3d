@@ -1,6 +1,7 @@
 _base_ = ['../../../configs/_base_/default_runtime.py']
 custom_imports = dict(
     imports=['projects.BEVFusion.bevfusion'], allow_failed_imports=False)
+#imports=['projects.BEVFusion.bevfusion', 'mmdet3d.hooks.channels_last_hook'], allow_failed_imports=False)
 
 # model settings
 # Voxel size for voxel encoder
@@ -267,8 +268,8 @@ test_pipeline = [
 ]
 
 train_dataloader = dict(
-    batch_size=1,
-    num_workers=4,
+    batch_size=30,
+    num_workers=8,
     persistent_workers=True,
     sampler=dict(type='DefaultSampler', shuffle=True),
     dataset=dict(
@@ -286,32 +287,32 @@ train_dataloader = dict(
             # we use box_type_3d='LiDAR' in kitti and nuscenes dataset
             # and box_type_3d='Depth' in sunrgbd and scannet dataset.
             box_type_3d='LiDAR')))
-val_dataloader = dict(
-    batch_size=1,
-    num_workers=4,
-    persistent_workers=True,
-    drop_last=False,
-    sampler=dict(type='DefaultSampler', shuffle=False),
-    dataset=dict(
-        type=dataset_type,
-        data_root=data_root,
-        ann_file='nuscenes_infos_val.pkl',
-        pipeline=test_pipeline,
-        metainfo=metainfo,
-        modality=input_modality,
-        data_prefix=data_prefix,
-        test_mode=True,
-        box_type_3d='LiDAR',
-        backend_args=backend_args))
-test_dataloader = val_dataloader
+# val_dataloader = dict(
+#     batch_size=1,
+#     num_workers=4,
+#     persistent_workers=True,
+#     drop_last=False,
+#     sampler=dict(type='DefaultSampler', shuffle=False),
+#     dataset=dict(
+#         type=dataset_type,
+#         data_root=data_root,
+#         ann_file='nuscenes_infos_val.pkl',
+#         pipeline=test_pipeline,
+#         metainfo=metainfo,
+#         modality=input_modality,
+#         data_prefix=data_prefix,
+#         test_mode=True,
+#         box_type_3d='LiDAR',
+#         backend_args=backend_args))
+# test_dataloader = val_dataloader
 
-val_evaluator = dict(
-    type='NuScenesMetric',
-    data_root=data_root,
-    ann_file=data_root + 'nuscenes_infos_val.pkl',
-    metric='bbox',
-    backend_args=backend_args)
-test_evaluator = val_evaluator
+# val_evaluator = dict(
+#     type='NuScenesMetric',
+#     data_root=data_root,
+#     ann_file=data_root + 'nuscenes_infos_val.pkl',
+#     metric='bbox',
+#     backend_args=backend_args)
+# test_evaluator = val_evaluator
 
 vis_backends = [dict(type='LocalVisBackend')]
 visualizer = dict(
@@ -362,9 +363,9 @@ param_scheduler = [
 ]
 
 # runtime settings
-train_cfg = dict(by_epoch=True, max_epochs=20, val_interval=5)
-val_cfg = dict()
-test_cfg = dict()
+train_cfg = dict(by_epoch=True, max_epochs=5, val_interval=1)
+# val_cfg = dict()
+# test_cfg = dict()
 
 optim_wrapper = dict(
     type='OptimWrapper',
@@ -375,10 +376,11 @@ optim_wrapper = dict(
 #   - `enable` means enable scaling LR automatically
 #       or not by default.
 #   - `base_batch_size` = (8 GPUs) x (4 samples per GPU).
-auto_scale_lr = dict(enable=False, base_batch_size=8)
+auto_scale_lr = dict(enable=False, base_batch_size=32)
 log_processor = dict(window_size=50)
 
 default_hooks = dict(
     logger=dict(type='LoggerHook', interval=50),
     checkpoint=dict(type='CheckpointHook', interval=5))
+#custom_hooks = [dict(type='DisableObjectSampleHook', disable_after_epoch=15), dict(type='ChannelsLastHook')]
 custom_hooks = [dict(type='DisableObjectSampleHook', disable_after_epoch=15)]
