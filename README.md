@@ -1,3 +1,18 @@
+```
+# build for bevfusion
+FORCE_MUSA=1 python projects/BEVFusion/setup.py develop
+```
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+
+------------------------------------------
+
+
 <div align="center">
   <img src="resources/mmdet3d-logo.png" width="600"/>
   <div>&nbsp;</div>
