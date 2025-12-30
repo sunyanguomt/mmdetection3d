@@ -726,6 +726,9 @@ int hard_voxelize_gpu(const at::Tensor& points, at::Tensor& voxels,
 
   dim3 map_grid(std::min(at::musa::ATenCeilDiv(num_points, 512), 4096));
   dim3 map_block(512);
+
+#if 1
+  // Since torch_musa does not support creating tensors of uint64 type, we cannot use tensors to represent 'd_codes'.
   uint64_t* d_codes;
   musaMalloc(&d_codes, sizeof(uint64_t) * num_points);
   auto d_sorted_indices_tensor = at::zeros(
@@ -734,13 +737,13 @@ int hard_voxelize_gpu(const at::Tensor& points, at::Tensor& voxels,
       },
       points.options().dtype(at::kInt));
   auto d_sorted_indices = d_sorted_indices_tensor.data_ptr<int>();
-
+#endif
   AT_DISPATCH_ALL_TYPES(
       temp_coors.scalar_type(), "determin_duplicate", ([&] {
+#if 1
         auto d_coor = temp_coors.contiguous().data_ptr<int>();
         auto d_point_to_voxelidx = point_to_voxelidx.contiguous().data_ptr<int>();
         auto d_point_to_pointidx = point_to_pointidx.contiguous().data_ptr<int>();
-#if 1
         generate_coor_code_kernel<int><<<map_grid, map_block>>>(
             d_coor, d_codes, d_sorted_indices, num_points, NDim
         );
@@ -778,12 +781,11 @@ int hard_voxelize_gpu(const at::Tensor& points, at::Tensor& voxels,
 
   AT_DISPATCH_ALL_TYPES(
       temp_coors.scalar_type(), "determin_duplicate", ([&] {
-        auto point_to_voxelidx_ptr = point_to_voxelidx.contiguous().data_ptr<int>();
+#if 1
         auto point_to_pointidx_ptr = point_to_pointidx.contiguous().data_ptr<int>();
         auto num_points_per_voxel_ptr = num_points_per_voxel.contiguous().data_ptr<int>();
         auto coor_to_voxelidx_ptr = coor_to_voxelidx.contiguous().data_ptr<int>();
         auto voxel_num_ptr = voxel_num.contiguous().data_ptr<int>();
-#if 1
         // 0. 给每个点做标记，is_head 还是 not head
         auto head_location_tensor = at::zeros(
             {
@@ -833,21 +835,19 @@ int hard_voxelize_gpu(const at::Tensor& points, at::Tensor& voxels,
             max_points,
             max_voxels,
             num_points);
+        musaFree(d_temp_storage);
+        musaFree(d_codes);
 #endif
 #if 0
         determin_voxel_num<int><<<1, 1, 0, at::musa::getCurrentMUSAStream()>>>(
             num_points_per_voxel.contiguous().data_ptr<int>(),
-            point_to_voxelidx_ptr,
-            point_to_pointidx_ptr,
-            coor_to_voxelidx_ptr,
-            voxel_num_ptr,
-            max_points,
-            max_voxels,
+            point_to_voxelidx.contiguous().data_ptr<int>(),
+            point_to_pointidx.contiguous().data_ptr<int>(),
+            coor_to_voxelidx.contiguous().data_ptr<int>(),
+            voxel_num.contiguous().data_ptr<int>(), max_points, max_voxels,
             num_points);
 #endif
-        musaFree(d_temp_storage);
       }));
-  musaFree(d_codes);
   musaDeviceSynchronize();
   AT_MUSA_CHECK(musaGetLastError());
 
