@@ -441,6 +441,7 @@ __global__ void compute_voxel_index_kernel(
     const int* sorted_indices,
     T_int* point_to_voxelidx,
     T_int* point_to_pointidx,
+    const int max_points,
     const int num_points,
     const int NDim
 ) {
@@ -454,28 +455,25 @@ __global__ void compute_voxel_index_kernel(
       continue;
     }
     // 初始化：第一个点 → 新体素
-    if (sorted_i == 0) {
-      point_to_voxelidx[sorted_i] = 0;
-      point_to_pointidx[sorted_i] = 0;
-      continue;
+    // 2. 找到体素块的起始索引 (start_i)
+    // 从当前点 i 向前遍历，直到找到与前一个点编码不同的位置 (j+1)
+    size_t start_i = i;
+    while (start_i > 0 && sorted_value[start_i] == sorted_value[start_i - 1]) {
+      start_i--;
     }
-    if (i == 0) {
-      point_to_voxelidx[sorted_i] = 0;
-      point_to_pointidx[sorted_i] = sorted_i;
+    // 3. 计算体素内点索引
+    int voxel_index = i - start_i;
+    
+    // 4. 核心修复：执行 Hard Voxelization 的max_points 限制
+    if (voxel_index >= max_points) {
+      point_to_voxelidx[sorted_i] = -1;  // 超出限制
+      point_to_pointidx[sorted_i] = -1;  // 标记为无效
       continue;
     }
 
-    int voxel = 0;
-    for (size_t j = i; j>0 && sorted_value[j] == sorted_value[j-1]; j--) {
-      voxel += 1;
-    }
-    point_to_voxelidx[sorted_i] = voxel;
-
-    size_t j = i;
-    for (; j>=1 && sorted_value[j] == sorted_value[j-1];) {
-      j--;
-    }
-    point_to_pointidx[sorted_i] = sorted_indices[j];
+    // 5. 写入结果
+    point_to_voxelidx[sorted_i] = voxel_index;
+    point_to_pointidx[sorted_i] = sorted_indices[start_i];
   }
 }
 
@@ -656,7 +654,11 @@ __global__ void determin_get_num_points_per_voxel(
       for (; i>0 && sorted_value[i] == sorted_value[i-1]; i--) {
         num++;
       }
-      num_points_per_voxel[coor_to_voxelidx[sorted_indices[i]]] = num;
+      //num_points_per_voxel[coor_to_voxelidx[sorted_indices[i]]] = num;
+      int voxel_idx = coor_to_voxelidx[sorted_indices[i]];
+      if (voxel_idx != -1) {
+        num_points_per_voxel[voxel_idx] = min(num, max_points);
+      }
     }
   }
 }
@@ -753,7 +755,7 @@ int hard_voxelize_gpu(const at::Tensor& points, at::Tensor& voxels,
         thrust::sort_by_key(dev_codes, dev_codes + num_points, dev_indices);
         compute_voxel_index_kernel<int><<<map_grid, map_block>>>(
             d_coor, d_codes, d_sorted_indices, d_point_to_voxelidx, d_point_to_pointidx,
-            num_points, NDim);
+            max_points, num_points, NDim);
 #endif
 #if 0
         point_to_voxelidx_kernel<int>
