@@ -13,6 +13,23 @@ from mmengine.runner import Runner
 
 from mmdet3d.utils import replace_ceph_backend
 
+import random
+import os
+import numpy as np
+import torch
+
+def set_seed(seed=42):
+    """设置固定随机种子以实现可复现性"""
+    # Python和环境的随机种子
+    random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)  # 禁止hash随机化
+    np.random.seed(seed)
+    torch.manual_seed(seed)  # 为CPU设置随机种子
+    if torch.musa.is_available():
+        torch.musa.manual_seed(seed)        # 为当前GPU设置随机种子
+        torch.musa.manual_seed_all(seed)    # 为所有GPU设置随机种子
+
+set_seed(42)  # 可以设置任意整数作为种子
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a 3D detector')
@@ -139,6 +156,7 @@ def main():
         # if 'runner_type' is set in the cfg
         runner = RUNNERS.build(cfg)
 
+    torch.backends.mudnn.allow_tf32 = True
     # start training
     runner.train()
 
