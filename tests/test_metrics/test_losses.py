@@ -75,7 +75,7 @@ def test_chamfer_disrance():
 
 def test_paconv_regularization_loss():
     from mmdet3d.models.losses import PAConvRegularizationLoss
-    from mmdet3d.ops import PAConv, PAConvCUDA
+    from mmdet3d.ops import PAConv, PAConvMUSA
     from mmdet.apis import set_random_seed
 
     class ToyModel(nn.Module):
@@ -86,7 +86,7 @@ def test_paconv_regularization_loss():
             self.paconvs = nn.ModuleList()
             self.paconvs.append(PAConv(8, 16, 8))
             self.paconvs.append(PAConv(8, 16, 8, kernel_input='identity'))
-            self.paconvs.append(PAConvCUDA(8, 16, 8))
+            self.paconvs.append(PAConvMUSA(8, 16, 8))
 
             self.conv1 = nn.Conv1d(3, 8, 1)
 

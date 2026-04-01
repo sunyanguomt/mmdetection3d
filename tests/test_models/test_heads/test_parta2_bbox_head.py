@@ -253,7 +253,7 @@ def test_get_targets():
 
 
 def test_get_bboxes():
-    if not torch.cuda.is_available():
+    if not torch.musa.is_available():
         pytest.skip()
     self = PartA2BboxHead(
         num_classes=3,
@@ -290,10 +290,10 @@ def test_get_bboxes():
                          [
                              0.0000e+00, 3.1789e+01, -5.5308e+00, -1.3012e+00,
                              1.6412e+00, 4.1070e+00, 1.5487e+00, -1.6517e+00
-                         ]]).cuda()
+                         ]]).musa()
 
     cls_score = torch.Tensor([[-2.2061], [-2.1121], [-1.4478], [-2.9614],
-                              [-0.1761], [0.7357]]).cuda()
+                              [-0.1761], [0.7357]]).musa()
 
     bbox_pred = torch.Tensor(
         [[
@@ -319,9 +319,9 @@ def test_get_bboxes():
          [
              -4.3259e-02, -1.9963e-02, 3.5004e-02, 3.7546e-03, 1.0876e-02,
              -3.9637e-04, 2.0445e-02
-         ]]).cuda()
+         ]]).musa()
 
-    class_labels = [torch.Tensor([2, 2, 2, 2, 2, 2]).cuda()]
+    class_labels = [torch.Tensor([2, 2, 2, 2, 2, 2]).musa()]
 
     class_pred = [
         torch.Tensor([[1.0877e-05, 1.0318e-05, 2.6599e-01],
@@ -329,7 +329,7 @@ def test_get_bboxes():
                       [1.4530e-05, 1.4619e-05, 2.4395e-01],
                       [1.3251e-05, 1.3038e-05, 2.3703e-01],
                       [2.9156e-05, 2.5521e-05, 2.2826e-01],
-                      [3.1665e-05, 2.9054e-05, 2.2077e-01]]).cuda()
+                      [3.1665e-05, 2.9054e-05, 2.2077e-01]]).musa()
     ]
 
     cfg = Config(
@@ -347,9 +347,9 @@ def test_get_bboxes():
     expected_selected_bboxes = torch.Tensor(
         [[56.2170, 25.9074, -1.3610, 1.6025, 3.6730, 1.5128, -0.1179],
          [54.6521, 28.8846, -1.9145, 1.6362, 4.0573, 1.5599, -1.7335],
-         [31.6179, -5.6004, -1.2470, 1.6458, 4.1622, 1.5632, -1.5734]]).cuda()
-    expected_selected_scores = torch.Tensor([-2.2061, -2.1121, -0.1761]).cuda()
-    expected_selected_label_preds = torch.Tensor([2., 2., 2.]).cuda()
+         [31.6179, -5.6004, -1.2470, 1.6458, 4.1622, 1.5632, -1.5734]]).musa()
+    expected_selected_scores = torch.Tensor([-2.2061, -2.1121, -0.1761]).musa()
+    expected_selected_label_preds = torch.Tensor([2., 2., 2.]).musa()
 
     assert torch.allclose(selected_bboxes.tensor, expected_selected_bboxes,
                           1e-3)
@@ -358,7 +358,7 @@ def test_get_bboxes():
 
 
 def test_multi_class_nms():
-    if not torch.cuda.is_available():
+    if not torch.musa.is_available():
         pytest.skip()
 
     self = PartA2BboxHead(
@@ -382,7 +382,7 @@ def test_multi_class_nms():
                               [5.5738e-06, 6.2453e-06, 2.1978e-01],
                               [9.0193e-06, 9.2154e-06, 2.1418e-01],
                               [1.4004e-05, 1.3209e-05, 2.1316e-01],
-                              [7.9210e-06, 8.1767e-06, 2.1304e-01]]).cuda()
+                              [7.9210e-06, 8.1767e-06, 2.1304e-01]]).musa()
 
     box_preds = torch.Tensor(
         [[
@@ -424,13 +424,13 @@ def test_multi_class_nms():
          [
              5.6007e+01, 2.6300e+01, -1.3945e+00, 1.5716e+00, 3.7064e+00,
              1.4715e+00, -2.9639e+00
-         ]]).cuda()
+         ]]).musa()
 
     input_meta = dict(
         box_type_3d=LiDARInstance3DBoxes, box_mode_3d=Box3DMode.LIDAR)
     selected = self.multi_class_nms(box_probs, box_preds, 0.1, 0.001,
                                     input_meta)
-    expected_selected = torch.Tensor([0, 1, 4, 8]).cuda()
+    expected_selected = torch.Tensor([0, 1, 4, 8]).musa()
 
     assert torch.all(selected == expected_selected)
 

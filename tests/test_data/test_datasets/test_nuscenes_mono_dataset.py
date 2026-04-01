@@ -93,8 +93,8 @@ def test_getitem():
 
 
 def test_format_results():
-    if not torch.cuda.is_available():
-        pytest.skip('test requires GPU and torch+cuda')
+    if not torch.musa.is_available():
+        pytest.skip('test requires GPU and torch+musa')
     root_path = 'tests/data/nuscenes/'
     ann_file = 'tests/data/nuscenes/nus_infos_mono3d.coco.json'
     class_names = [

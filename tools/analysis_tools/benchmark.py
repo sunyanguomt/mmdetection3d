@@ -68,13 +68,13 @@ def main():
     # benchmark with several samples and take the average
     for i, data in enumerate(data_loader):
 
-        torch.cuda.synchronize()
+        torch.musa.synchronize()
         start_time = time.perf_counter()
 
         with torch.no_grad():
             model(return_loss=False, rescale=True, **data)
 
-        torch.cuda.synchronize()
+        torch.musa.synchronize()
         elapsed = time.perf_counter() - start_time
 
         if i >= num_warmup:

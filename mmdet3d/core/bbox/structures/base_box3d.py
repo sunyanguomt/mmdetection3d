@@ -3,7 +3,7 @@ import numpy as np
 import torch
 from abc import abstractmethod
 
-from mmdet3d.ops.iou3d import iou3d_cuda
+from mmdet3d.ops.iou3d import iou3d_musa
 from .utils import limit_period, xywhr2xyxyr
 
 
@@ -421,9 +421,9 @@ class BaseInstance3DBoxes(object):
 
         # bev overlap
         overlaps_bev = boxes1_bev.new_zeros(
-            (boxes1_bev.shape[0], boxes2_bev.shape[0])).cuda()  # (N, M)
-        iou3d_cuda.boxes_overlap_bev_gpu(boxes1_bev.contiguous().cuda(),
-                                         boxes2_bev.contiguous().cuda(),
+            (boxes1_bev.shape[0], boxes2_bev.shape[0])).musa()  # (N, M)
+        iou3d_musa.boxes_overlap_bev_gpu(boxes1_bev.contiguous().musa(),
+                                         boxes2_bev.contiguous().musa(),
                                          overlaps_bev)
 
         # 3d overlaps

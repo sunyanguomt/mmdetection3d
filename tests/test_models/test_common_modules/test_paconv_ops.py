@@ -2,11 +2,11 @@
 import pytest
 import torch
 
-from mmdet3d.ops import PAConv, PAConvCUDA, assign_score_withk
+from mmdet3d.ops import PAConv, PAConvMUSA, assign_score_withk
 
 
 def test_paconv_assign_scores():
-    if not torch.cuda.is_available():
+    if not torch.musa.is_available():
         pytest.skip()
     scores = torch.tensor([[[[0.06947571, 0.6065746], [0.28462553, 0.8378516],
                              [0.7595994, 0.97220325], [0.519155, 0.766185]],
@@ -16,7 +16,7 @@ def test_paconv_assign_scores():
                              [0.6887394, 0.22089851], [0.0502342, 0.79228795]],
                             [[0.44883424, 0.15427643],
                              [0.13817799, 0.34856772], [0.7989621, 0.33788306],
-                             [0.15699774, 0.7693662]]]]).float().cuda()
+                             [0.15699774, 0.7693662]]]]).float().musa()
     scores.requires_grad_()
     points = torch.tensor([[[[0.06001121, 0.92963666, 0.5753327, 0.7251477],
                              [0.53563064, 0.23129565, 0.92366195, 0.44261628]],
@@ -50,7 +50,7 @@ def test_paconv_assign_scores():
                              [0.25223452, 0.46696228, 0.7051136, 0.892151]],
                             [[0.49615085, 0.47321403, 0.93138885, 0.7652197],
                              [0.38766378, 0.30332977, 0.23131835,
-                              0.02863514]]]]).float().cuda()
+                              0.02863514]]]]).float().musa()
     points.requires_grad_()
     centers = torch.tensor([[[[0.83878064, 0.96658987, 0.8033424, 0.9598312],
                               [0.45035273, 0.8768925, 0.977736, 0.54547966]],
@@ -86,10 +86,10 @@ def test_paconv_assign_scores():
                                0.44358212]],
                              [[0.5274848, 0.82096446, 0.9415489, 0.7123748],
                               [0.7537517, 0.8086482, 0.85345286,
-                               0.7472754]]]]).float().cuda()
+                               0.7472754]]]]).float().musa()
     centers.requires_grad_()
     knn_idx = torch.tensor([[[6, 7, 4, 6], [2, 4, 2, 4]],
-                            [[7, 1, 3, 2], [6, 0, 2, 6]]]).long().cuda()
+                            [[7, 1, 3, 2], [6, 0, 2, 6]]]).long().musa()
     aggregate = 'sum'
     expected_output = torch.tensor(
         [[[[-0.08134781, 0.03877336, -0.8212776, -0.2869547],
@@ -208,8 +208,8 @@ def test_paconv():
     assert new_features.shape == torch.Size([B, out_channels, npoint, K])
 
 
-def test_paconv_cuda():
-    if not torch.cuda.is_available():
+def test_paconv_musa():
+    if not torch.musa.is_available():
         pytest.skip()
     B = 2
     in_channels = 6
@@ -218,11 +218,11 @@ def test_paconv_cuda():
     npoint = 4
     K = 3
     num_kernels = 4
-    points_xyz = torch.randn(B, 3, npoint, K).float().cuda()
-    features = torch.randn(B, in_channels, N).float().cuda()
-    points_idx = torch.randint(0, N, (B, npoint, K)).long().cuda()
+    points_xyz = torch.randn(B, 3, npoint, K).float().musa()
+    features = torch.randn(B, in_channels, N).float().musa()
+    points_idx = torch.randint(0, N, (B, npoint, K)).long().musa()
 
-    paconv = PAConvCUDA(in_channels, out_channels, num_kernels).cuda()
+    paconv = PAConvMUSA(in_channels, out_channels, num_kernels).musa()
     assert paconv.weight_bank.shape == torch.Size(
         [in_channels * 2, out_channels * num_kernels])
 

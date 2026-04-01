@@ -168,7 +168,7 @@ class Anchor3DHead(BaseModule, AnchorTrainMixin):
         """
         return multi_apply(self.forward_single, feats)
 
-    def get_anchors(self, featmap_sizes, input_metas, device='cuda'):
+    def get_anchors(self, featmap_sizes, input_metas, device='musa'):
         """Get anchors according to feature map sizes.
 
         Args:

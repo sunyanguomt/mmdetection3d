@@ -250,7 +250,7 @@ class DepthInstance3DBoxes(BaseInstance3DBoxes):
             box=self, src=Box3DMode.DEPTH, dst=dst, rt_mat=rt_mat)
 
     def points_in_boxes(self, points):
-        """Find points that are in boxes (CUDA).
+        """Find points that are in boxes (MUSA).
 
         Args:
             points (torch.Tensor): Points in shape [1, M, 3] or [M, 3], \

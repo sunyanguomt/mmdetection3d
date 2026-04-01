@@ -7,7 +7,7 @@ from mmdet3d.core.bbox.samplers import IoUNegPiecewiseSampler
 
 
 def test_iou_piecewise_sampler():
-    if not torch.cuda.is_available():
+    if not torch.musa.is_available():
         pytest.skip()
     assigner = MaxIoUAssigner(
         pos_iou_thr=0.55,
@@ -22,11 +22,11 @@ def test_iou_piecewise_sampler():
          [5, 5, 5, 15, 15, 15, 0.7], [5, 5, 5, 15, 15, 15, 0.7],
          [5, 5, 5, 15, 15, 15, 0.7], [32, 32, 16, 8, 38, 42, -0.3],
          [32, 32, 16, 8, 38, 42, -0.3], [32, 32, 16, 8, 38, 42, -0.3]],
-        dtype=torch.float32).cuda()
+        dtype=torch.float32).musa()
     gt_bboxes = torch.tensor(
         [[0, 0, 0, 10, 10, 9, 0.2], [5, 10, 10, 20, 20, 15, 0.6]],
-        dtype=torch.float32).cuda()
-    gt_labels = torch.tensor([1, 1], dtype=torch.int64).cuda()
+        dtype=torch.float32).musa()
+    gt_labels = torch.tensor([1, 1], dtype=torch.int64).musa()
     assign_result = assigner.assign(bboxes, gt_bboxes, gt_labels=gt_labels)
 
     sampler = IoUNegPiecewiseSampler(

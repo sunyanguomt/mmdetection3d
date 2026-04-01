@@ -7,7 +7,7 @@ from mmdet3d.models import build_backbone
 
 
 def test_pointnet2_sa_ssg():
-    if not torch.cuda.is_available():
+    if not torch.musa.is_available():
         pytest.skip()
 
     cfg = dict(
@@ -19,7 +19,7 @@ def test_pointnet2_sa_ssg():
         sa_channels=((8, 16), (16, 16)),
         fp_channels=((16, 16), (16, 16)))
     self = build_backbone(cfg)
-    self.cuda()
+    self.musa()
     assert self.SA_modules[0].mlps[0].layer0.conv.in_channels == 6
     assert self.SA_modules[0].mlps[0].layer0.conv.out_channels == 8
     assert self.SA_modules[0].mlps[0].layer1.conv.out_channels == 16
@@ -29,7 +29,7 @@ def test_pointnet2_sa_ssg():
     assert self.FP_modules[1].mlps.layer0.conv.in_channels == 19
 
     xyz = np.fromfile('tests/data/sunrgbd/points/000001.bin', dtype=np.float32)
-    xyz = torch.from_numpy(xyz).view(1, -1, 6).cuda()  # (B, N, 6)
+    xyz = torch.from_numpy(xyz).view(1, -1, 6).musa()  # (B, N, 6)
     # test forward
     ret_dict = self(xyz)
     fp_xyz = ret_dict['fp_xyz']
@@ -62,7 +62,7 @@ def test_pointnet2_sa_ssg():
     # test only xyz input without features
     cfg['in_channels'] = 3
     self = build_backbone(cfg)
-    self.cuda()
+    self.musa()
     ret_dict = self(xyz[..., :3])
     assert len(fp_xyz) == len(fp_features) == len(fp_indices) == 3
     assert len(sa_xyz) == len(sa_features) == len(sa_indices) == 3
@@ -75,7 +75,7 @@ def test_pointnet2_sa_ssg():
 
 
 def test_multi_backbone():
-    if not torch.cuda.is_available():
+    if not torch.musa.is_available():
         pytest.skip()
 
     # test list config
@@ -127,12 +127,12 @@ def test_multi_backbone():
         ])
 
     self = build_backbone(cfg_list)
-    self.cuda()
+    self.musa()
 
     assert len(self.backbone_list) == 4
 
     xyz = np.fromfile('tests/data/sunrgbd/points/000001.bin', dtype=np.float32)
-    xyz = torch.from_numpy(xyz).view(1, -1, 6).cuda()  # (B, N, 6)
+    xyz = torch.from_numpy(xyz).view(1, -1, 6).musa()  # (B, N, 6)
     # test forward
     ret_dict = self(xyz[:, :, :4])
 
@@ -158,7 +158,7 @@ def test_multi_backbone():
             norm_cfg=dict(type='BN2d')))
 
     self = build_backbone(cfg_dict)
-    self.cuda()
+    self.musa()
 
     assert len(self.backbone_list) == 2
 
@@ -186,7 +186,7 @@ def test_multi_backbone():
 
 
 def test_pointnet2_sa_msg():
-    if not torch.cuda.is_available():
+    if not torch.musa.is_available():
         pytest.skip()
 
     # PN2MSG used in 3DSSD
@@ -210,14 +210,14 @@ def test_pointnet2_sa_msg():
             normalize_xyz=False))
 
     self = build_backbone(cfg)
-    self.cuda()
+    self.musa()
     assert self.SA_modules[0].mlps[0].layer0.conv.in_channels == 4
     assert self.SA_modules[0].mlps[0].layer0.conv.out_channels == 8
     assert self.SA_modules[0].mlps[1].layer1.conv.out_channels == 8
     assert self.SA_modules[2].mlps[2].layer2.conv.out_channels == 64
 
     xyz = np.fromfile('tests/data/sunrgbd/points/000001.bin', dtype=np.float32)
-    xyz = torch.from_numpy(xyz).view(1, -1, 6).cuda()  # (B, N, 6)
+    xyz = torch.from_numpy(xyz).view(1, -1, 6).musa()  # (B, N, 6)
     # test forward
     ret_dict = self(xyz[:, :, :4])
     sa_xyz = ret_dict['sa_xyz'][-1]
@@ -275,7 +275,7 @@ def test_pointnet2_sa_msg():
             normalize_xyz=False))
 
     self = build_backbone(cfg)
-    self.cuda()
+    self.musa()
     ret_dict = self(xyz)
     sa_xyz = ret_dict['sa_xyz']
     sa_features = ret_dict['sa_features']

@@ -67,8 +67,8 @@ def main():
         cfg.model,
         train_cfg=cfg.get('train_cfg'),
         test_cfg=cfg.get('test_cfg'))
-    if torch.cuda.is_available():
-        model.cuda()
+    if torch.musa.is_available():
+        model.musa()
     model.eval()
 
     if hasattr(model, 'forward_dummy'):

@@ -13,7 +13,7 @@ from mmdet3d.models.builder import build_detector
 
 def _setup_seed(seed):
     torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
+    torch.musa.manual_seed_all(seed)
     np.random.seed(seed)
     random.seed(seed)
     torch.backends.cudnn.deterministic = True
@@ -73,35 +73,35 @@ def _get_detector_cfg(fname):
 
 
 def test_get_dynamic_voxelnet():
-    if not torch.cuda.is_available():
-        pytest.skip('test requires GPU and torch+cuda')
+    if not torch.musa.is_available():
+        pytest.skip('test requires GPU and torch+musa')
 
     dynamic_voxelnet_cfg = _get_model_cfg(
         'dynamic_voxelization/dv_second_secfpn_6x8_80e_kitti-3d-car.py')
-    self = build_detector(dynamic_voxelnet_cfg).cuda()
-    points_0 = torch.rand([2010, 4], device='cuda')
-    points_1 = torch.rand([2020, 4], device='cuda')
+    self = build_detector(dynamic_voxelnet_cfg).musa()
+    points_0 = torch.rand([2010, 4], device='musa')
+    points_1 = torch.rand([2020, 4], device='musa')
     points = [points_0, points_1]
     feats = self.extract_feat(points, None)
     assert feats[0].shape == torch.Size([2, 512, 200, 176])
 
 
 def test_voxel_net():
-    if not torch.cuda.is_available():
-        pytest.skip('test requires GPU and torch+cuda')
+    if not torch.musa.is_available():
+        pytest.skip('test requires GPU and torch+musa')
     _setup_seed(0)
     voxel_net_cfg = _get_detector_cfg(
         'second/hv_second_secfpn_6x8_80e_kitti-3d-3class.py')
 
-    self = build_detector(voxel_net_cfg).cuda()
-    points_0 = torch.rand([2010, 4], device='cuda')
-    points_1 = torch.rand([2020, 4], device='cuda')
+    self = build_detector(voxel_net_cfg).musa()
+    points_0 = torch.rand([2010, 4], device='musa')
+    points_1 = torch.rand([2020, 4], device='musa')
     points = [points_0, points_1]
-    gt_bbox_0 = LiDARInstance3DBoxes(torch.rand([10, 7], device='cuda'))
-    gt_bbox_1 = LiDARInstance3DBoxes(torch.rand([10, 7], device='cuda'))
+    gt_bbox_0 = LiDARInstance3DBoxes(torch.rand([10, 7], device='musa'))
+    gt_bbox_1 = LiDARInstance3DBoxes(torch.rand([10, 7], device='musa'))
     gt_bboxes = [gt_bbox_0, gt_bbox_1]
-    gt_labels_0 = torch.randint(0, 3, [10], device='cuda')
-    gt_labels_1 = torch.randint(0, 3, [10], device='cuda')
+    gt_labels_0 = torch.randint(0, 3, [10], device='musa')
+    gt_labels_1 = torch.randint(0, 3, [10], device='musa')
     gt_labels = [gt_labels_0, gt_labels_1]
     img_meta_0 = dict(box_type_3d=LiDARInstance3DBoxes)
     img_meta_1 = dict(box_type_3d=LiDARInstance3DBoxes)
@@ -125,22 +125,22 @@ def test_voxel_net():
 
 
 def test_3dssd():
-    if not torch.cuda.is_available():
-        pytest.skip('test requires GPU and torch+cuda')
+    if not torch.musa.is_available():
+        pytest.skip('test requires GPU and torch+musa')
     _setup_seed(0)
     ssd3d_cfg = _get_detector_cfg('3dssd/3dssd_4x4_kitti-3d-car.py')
-    self = build_detector(ssd3d_cfg).cuda()
-    points_0 = torch.rand([2000, 4], device='cuda')
-    points_1 = torch.rand([2000, 4], device='cuda')
+    self = build_detector(ssd3d_cfg).musa()
+    points_0 = torch.rand([2000, 4], device='musa')
+    points_1 = torch.rand([2000, 4], device='musa')
     points = [points_0, points_1]
     img_meta_0 = dict(box_type_3d=DepthInstance3DBoxes)
     img_meta_1 = dict(box_type_3d=DepthInstance3DBoxes)
     img_metas = [img_meta_0, img_meta_1]
-    gt_bbox_0 = DepthInstance3DBoxes(torch.rand([10, 7], device='cuda'))
-    gt_bbox_1 = DepthInstance3DBoxes(torch.rand([10, 7], device='cuda'))
+    gt_bbox_0 = DepthInstance3DBoxes(torch.rand([10, 7], device='musa'))
+    gt_bbox_1 = DepthInstance3DBoxes(torch.rand([10, 7], device='musa'))
     gt_bboxes = [gt_bbox_0, gt_bbox_1]
-    gt_labels_0 = torch.zeros([10], device='cuda').long()
-    gt_labels_1 = torch.zeros([10], device='cuda').long()
+    gt_labels_0 = torch.zeros([10], device='musa').long()
+    gt_labels_1 = torch.zeros([10], device='musa').long()
     gt_labels = [gt_labels_0, gt_labels_1]
 
     # test forward_train
@@ -166,24 +166,24 @@ def test_3dssd():
 
 
 def test_vote_net():
-    if not torch.cuda.is_available():
-        pytest.skip('test requires GPU and torch+cuda')
+    if not torch.musa.is_available():
+        pytest.skip('test requires GPU and torch+musa')
 
     _setup_seed(0)
     vote_net_cfg = _get_detector_cfg(
         'votenet/votenet_16x8_sunrgbd-3d-10class.py')
-    self = build_detector(vote_net_cfg).cuda()
-    points_0 = torch.rand([2000, 4], device='cuda')
-    points_1 = torch.rand([2000, 4], device='cuda')
+    self = build_detector(vote_net_cfg).musa()
+    points_0 = torch.rand([2000, 4], device='musa')
+    points_1 = torch.rand([2000, 4], device='musa')
     points = [points_0, points_1]
     img_meta_0 = dict(box_type_3d=DepthInstance3DBoxes)
     img_meta_1 = dict(box_type_3d=DepthInstance3DBoxes)
     img_metas = [img_meta_0, img_meta_1]
-    gt_bbox_0 = DepthInstance3DBoxes(torch.rand([10, 7], device='cuda'))
-    gt_bbox_1 = DepthInstance3DBoxes(torch.rand([10, 7], device='cuda'))
+    gt_bbox_0 = DepthInstance3DBoxes(torch.rand([10, 7], device='musa'))
+    gt_bbox_1 = DepthInstance3DBoxes(torch.rand([10, 7], device='musa'))
     gt_bboxes = [gt_bbox_0, gt_bbox_1]
-    gt_labels_0 = torch.randint(0, 10, [10], device='cuda')
-    gt_labels_1 = torch.randint(0, 10, [10], device='cuda')
+    gt_labels_0 = torch.randint(0, 10, [10], device='musa')
+    gt_labels_1 = torch.randint(0, 10, [10], device='musa')
     gt_labels = [gt_labels_0, gt_labels_1]
 
     # test forward_train
@@ -210,23 +210,23 @@ def test_vote_net():
 
 
 def test_parta2():
-    if not torch.cuda.is_available():
-        pytest.skip('test requires GPU and torch+cuda')
+    if not torch.musa.is_available():
+        pytest.skip('test requires GPU and torch+musa')
     _setup_seed(0)
     parta2 = _get_detector_cfg(
         'parta2/hv_PartA2_secfpn_2x8_cyclic_80e_kitti-3d-3class.py')
-    self = build_detector(parta2).cuda()
-    points_0 = torch.rand([1000, 4], device='cuda')
-    points_1 = torch.rand([1000, 4], device='cuda')
+    self = build_detector(parta2).musa()
+    points_0 = torch.rand([1000, 4], device='musa')
+    points_1 = torch.rand([1000, 4], device='musa')
     points = [points_0, points_1]
     img_meta_0 = dict(box_type_3d=LiDARInstance3DBoxes)
     img_meta_1 = dict(box_type_3d=LiDARInstance3DBoxes)
     img_metas = [img_meta_0, img_meta_1]
-    gt_bbox_0 = LiDARInstance3DBoxes(torch.rand([10, 7], device='cuda'))
-    gt_bbox_1 = LiDARInstance3DBoxes(torch.rand([10, 7], device='cuda'))
+    gt_bbox_0 = LiDARInstance3DBoxes(torch.rand([10, 7], device='musa'))
+    gt_bbox_1 = LiDARInstance3DBoxes(torch.rand([10, 7], device='musa'))
     gt_bboxes = [gt_bbox_0, gt_bbox_1]
-    gt_labels_0 = torch.randint(0, 3, [10], device='cuda')
-    gt_labels_1 = torch.randint(0, 3, [10], device='cuda')
+    gt_labels_0 = torch.randint(0, 3, [10], device='musa')
+    gt_labels_1 = torch.randint(0, 3, [10], device='musa')
     gt_labels = [gt_labels_0, gt_labels_1]
 
     # test_forward_train
@@ -253,14 +253,14 @@ def test_parta2():
 
 
 def test_centerpoint():
-    if not torch.cuda.is_available():
-        pytest.skip('test requires GPU and torch+cuda')
+    if not torch.musa.is_available():
+        pytest.skip('test requires GPU and torch+musa')
     centerpoint = _get_detector_cfg(
         'centerpoint/centerpoint_0075voxel_second_secfpn_'
         'dcn_4x8_cyclic_flip-tta_20e_nus.py')
-    self = build_detector(centerpoint).cuda()
-    points_0 = torch.rand([1000, 5], device='cuda')
-    points_1 = torch.rand([1000, 5], device='cuda')
+    self = build_detector(centerpoint).musa()
+    points_0 = torch.rand([1000, 5], device='musa')
+    points_1 = torch.rand([1000, 5], device='musa')
     points = [points_0, points_1]
     img_meta_0 = dict(
         box_type_3d=LiDARInstance3DBoxes,
@@ -274,12 +274,12 @@ def test_centerpoint():
         pcd_vertical_flip=True)
     img_metas = [img_meta_0, img_meta_1]
     gt_bbox_0 = LiDARInstance3DBoxes(
-        torch.rand([10, 9], device='cuda'), box_dim=9)
+        torch.rand([10, 9], device='musa'), box_dim=9)
     gt_bbox_1 = LiDARInstance3DBoxes(
-        torch.rand([10, 9], device='cuda'), box_dim=9)
+        torch.rand([10, 9], device='musa'), box_dim=9)
     gt_bboxes = [gt_bbox_0, gt_bbox_1]
-    gt_labels_0 = torch.randint(0, 3, [10], device='cuda')
-    gt_labels_1 = torch.randint(0, 3, [10], device='cuda')
+    gt_labels_0 = torch.randint(0, 3, [10], device='musa')
+    gt_labels_1 = torch.randint(0, 3, [10], device='musa')
     gt_labels = [gt_labels_0, gt_labels_1]
 
     # test_forward_train
@@ -306,7 +306,7 @@ def test_centerpoint():
     assert labels_3d_1.shape[0] >= 0
 
     # test_aug_test
-    points = [[torch.rand([1000, 5], device='cuda')]]
+    points = [[torch.rand([1000, 5], device='musa')]]
     img_metas = [[
         dict(
             box_type_3d=LiDARInstance3DBoxes,
@@ -327,22 +327,22 @@ def test_centerpoint():
 
 
 def test_fcos3d():
-    if not torch.cuda.is_available():
-        pytest.skip('test requires GPU and torch+cuda')
+    if not torch.musa.is_available():
+        pytest.skip('test requires GPU and torch+musa')
 
     _setup_seed(0)
     fcos3d_cfg = _get_detector_cfg(
         'fcos3d/fcos3d_r101_caffe_fpn_gn-head_dcn_2x8_1x_nus-mono3d.py')
-    self = build_detector(fcos3d_cfg).cuda()
-    imgs = torch.rand([1, 3, 928, 1600], dtype=torch.float32).cuda()
-    gt_bboxes = [torch.rand([3, 4], dtype=torch.float32).cuda()]
+    self = build_detector(fcos3d_cfg).musa()
+    imgs = torch.rand([1, 3, 928, 1600], dtype=torch.float32).musa()
+    gt_bboxes = [torch.rand([3, 4], dtype=torch.float32).musa()]
     gt_bboxes_3d = CameraInstance3DBoxes(
-        torch.rand([3, 9], device='cuda'), box_dim=9)
-    gt_labels = [torch.randint(0, 10, [3], device='cuda')]
+        torch.rand([3, 9], device='musa'), box_dim=9)
+    gt_labels = [torch.randint(0, 10, [3], device='musa')]
     gt_labels_3d = gt_labels
-    centers2d = [torch.rand([3, 2], dtype=torch.float32).cuda()]
-    depths = [torch.rand([3], dtype=torch.float32).cuda()]
-    attr_labels = [torch.randint(0, 9, [3], device='cuda')]
+    centers2d = [torch.rand([3, 2], dtype=torch.float32).musa()]
+    depths = [torch.rand([3], dtype=torch.float32).musa()]
+    attr_labels = [torch.randint(0, 9, [3], device='musa')]
     img_metas = [
         dict(
             cam2img=[[1260.8474446004698, 0.0, 807.968244525554],
@@ -381,31 +381,31 @@ def test_fcos3d():
 
 
 def test_groupfree3dnet():
-    if not torch.cuda.is_available():
-        pytest.skip('test requires GPU and torch+cuda')
+    if not torch.musa.is_available():
+        pytest.skip('test requires GPU and torch+musa')
 
     _setup_seed(0)
     groupfree3d_cfg = _get_detector_cfg(
         'groupfree3d/groupfree3d_8x4_scannet-3d-18class-L6-O256.py')
-    self = build_detector(groupfree3d_cfg).cuda()
+    self = build_detector(groupfree3d_cfg).musa()
 
-    points_0 = torch.rand([50000, 3], device='cuda')
-    points_1 = torch.rand([50000, 3], device='cuda')
+    points_0 = torch.rand([50000, 3], device='musa')
+    points_1 = torch.rand([50000, 3], device='musa')
     points = [points_0, points_1]
     img_meta_0 = dict(box_type_3d=DepthInstance3DBoxes)
     img_meta_1 = dict(box_type_3d=DepthInstance3DBoxes)
     img_metas = [img_meta_0, img_meta_1]
-    gt_bbox_0 = DepthInstance3DBoxes(torch.rand([10, 7], device='cuda'))
-    gt_bbox_1 = DepthInstance3DBoxes(torch.rand([10, 7], device='cuda'))
+    gt_bbox_0 = DepthInstance3DBoxes(torch.rand([10, 7], device='musa'))
+    gt_bbox_1 = DepthInstance3DBoxes(torch.rand([10, 7], device='musa'))
     gt_bboxes = [gt_bbox_0, gt_bbox_1]
-    gt_labels_0 = torch.randint(0, 18, [10], device='cuda')
-    gt_labels_1 = torch.randint(0, 18, [10], device='cuda')
+    gt_labels_0 = torch.randint(0, 18, [10], device='musa')
+    gt_labels_1 = torch.randint(0, 18, [10], device='musa')
     gt_labels = [gt_labels_0, gt_labels_1]
-    pts_instance_mask_1 = torch.randint(0, 10, [50000], device='cuda')
-    pts_instance_mask_2 = torch.randint(0, 10, [50000], device='cuda')
+    pts_instance_mask_1 = torch.randint(0, 10, [50000], device='musa')
+    pts_instance_mask_2 = torch.randint(0, 10, [50000], device='musa')
     pts_instance_mask = [pts_instance_mask_1, pts_instance_mask_2]
-    pts_semantic_mask_1 = torch.randint(0, 19, [50000], device='cuda')
-    pts_semantic_mask_2 = torch.randint(0, 19, [50000], device='cuda')
+    pts_semantic_mask_1 = torch.randint(0, 19, [50000], device='musa')
+    pts_semantic_mask_2 = torch.randint(0, 19, [50000], device='musa')
     pts_semantic_mask = [pts_semantic_mask_1, pts_semantic_mask_2]
 
     # test forward_train
@@ -434,14 +434,14 @@ def test_groupfree3dnet():
 
 
 def test_imvoxelnet():
-    if not torch.cuda.is_available():
-        pytest.skip('test requires GPU and torch+cuda')
+    if not torch.musa.is_available():
+        pytest.skip('test requires GPU and torch+musa')
 
     imvoxelnet_cfg = _get_detector_cfg('imvoxelnet/imvoxelnet_kitti-3d-car.py')
-    self = build_detector(imvoxelnet_cfg).cuda()
-    imgs = torch.rand([1, 3, 384, 1280], dtype=torch.float32).cuda()
-    gt_bboxes_3d = [LiDARInstance3DBoxes(torch.rand([3, 7], device='cuda'))]
-    gt_labels_3d = [torch.zeros([3], dtype=torch.long, device='cuda')]
+    self = build_detector(imvoxelnet_cfg).musa()
+    imgs = torch.rand([1, 3, 384, 1280], dtype=torch.float32).musa()
+    gt_bboxes_3d = [LiDARInstance3DBoxes(torch.rand([3, 7], device='musa'))]
+    gt_labels_3d = [torch.zeros([3], dtype=torch.long, device='musa')]
     img_metas = [
         dict(
             box_type_3d=LiDARInstance3DBoxes,

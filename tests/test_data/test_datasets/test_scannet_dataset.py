@@ -121,7 +121,7 @@ def test_getitem():
 
 
 def test_evaluate():
-    if not torch.cuda.is_available():
+    if not torch.musa.is_available():
         pytest.skip()
     from mmdet3d.core.bbox.structures import DepthInstance3DBoxes
     root_path = './tests/data/scannet'
@@ -531,7 +531,7 @@ def test_seg_getitem():
 
 
 def test_seg_evaluate():
-    if not torch.cuda.is_available():
+    if not torch.musa.is_available():
         pytest.skip()
     root_path = './tests/data/scannet'
     ann_file = './tests/data/scannet/scannet_infos.pkl'

@@ -245,13 +245,13 @@ def test_show_result_meshlab():
 
 
 def test_inference_detector():
-    if not torch.cuda.is_available():
-        pytest.skip('test requires GPU and torch+cuda')
+    if not torch.musa.is_available():
+        pytest.skip('test requires GPU and torch+musa')
 
     pcd = 'tests/data/kitti/training/velodyne_reduced/000000.bin'
     detector_cfg = 'configs/pointpillars/hv_pointpillars_secfpn_' \
                    '6x8_160e_kitti-3d-3class.py'
-    detector = init_model(detector_cfg, device='cuda:0')
+    detector = init_model(detector_cfg, device='musa:0')
     results = inference_detector(detector, pcd)
     bboxes_3d = results[0][0]['boxes_3d']
     scores_3d = results[0][0]['scores_3d']
@@ -264,15 +264,15 @@ def test_inference_detector():
 
 def test_inference_multi_modality_detector():
     # these two multi-modality models both only have GPU implementations
-    if not torch.cuda.is_available():
-        pytest.skip('test requires GPU and torch+cuda')
+    if not torch.musa.is_available():
+        pytest.skip('test requires GPU and torch+musa')
     # indoor scene
     pcd = 'tests/data/sunrgbd/points/000001.bin'
     img = 'tests/data/sunrgbd/sunrgbd_trainval/image/000001.jpg'
     ann_file = 'tests/data/sunrgbd/sunrgbd_infos.pkl'
     detector_cfg = 'configs/imvotenet/imvotenet_stage2_'\
                    '16x8_sunrgbd-3d-10class.py'
-    detector = init_model(detector_cfg, device='cuda:0')
+    detector = init_model(detector_cfg, device='musa:0')
     results = inference_multi_modality_detector(detector, pcd, img, ann_file)
     bboxes_3d = results[0][0]['boxes_3d']
     scores_3d = results[0][0]['scores_3d']
@@ -288,7 +288,7 @@ def test_inference_multi_modality_detector():
     ann_file = 'tests/data/kitti/kitti_infos_train.pkl'
     detector_cfg = 'configs/mvxnet/dv_mvx-fpn_second_secfpn_adamw_' \
                    '2x8_80e_kitti-3d-3class.py'
-    detector = init_model(detector_cfg, device='cuda:0')
+    detector = init_model(detector_cfg, device='musa:0')
     results = inference_multi_modality_detector(detector, pcd, img, ann_file)
     bboxes_3d = results[0][0]['pts_bbox']['boxes_3d']
     scores_3d = results[0][0]['pts_bbox']['scores_3d']
@@ -301,14 +301,14 @@ def test_inference_multi_modality_detector():
 
 def test_inference_mono_3d_detector():
     # FCOS3D only has GPU implementations
-    if not torch.cuda.is_available():
-        pytest.skip('test requires GPU and torch+cuda')
+    if not torch.musa.is_available():
+        pytest.skip('test requires GPU and torch+musa')
     img = 'tests/data/nuscenes/samples/CAM_BACK_LEFT/' \
           'n015-2018-07-18-11-07-57+0800__CAM_BACK_LEFT__1531883530447423.jpg'
     ann_file = 'tests/data/nuscenes/nus_infos_mono3d.coco.json'
     detector_cfg = 'configs/fcos3d/fcos3d_r101_caffe_fpn_gn-head_dcn_' \
                    '2x8_1x_nus-mono3d.py'
-    detector = init_model(detector_cfg, device='cuda:0')
+    detector = init_model(detector_cfg, device='musa:0')
     results = inference_mono_3d_detector(detector, img, ann_file)
     bboxes_3d = results[0][0]['img_bbox']['boxes_3d']
     scores_3d = results[0][0]['img_bbox']['scores_3d']
@@ -321,12 +321,12 @@ def test_inference_mono_3d_detector():
 
 def test_inference_segmentor():
     # PN2 only has GPU implementations
-    if not torch.cuda.is_available():
-        pytest.skip('test requires GPU and torch+cuda')
+    if not torch.musa.is_available():
+        pytest.skip('test requires GPU and torch+musa')
     pcd = 'tests/data/scannet/points/scene0000_00.bin'
     segmentor_cfg = 'configs/pointnet2/pointnet2_ssg_' \
                     '16x2_cosine_200e_scannet_seg-3d-20class.py'
-    segmentor = init_model(segmentor_cfg, device='cuda:0')
+    segmentor = init_model(segmentor_cfg, device='musa:0')
     results = inference_segmentor(segmentor, pcd)
     seg_3d = results[0][0]['semantic_mask']
     assert seg_3d.shape == torch.Size([100])
@@ -335,8 +335,8 @@ def test_inference_segmentor():
 
 
 def test_single_gpu_test():
-    if not torch.cuda.is_available():
-        pytest.skip('test requires GPU and torch+cuda')
+    if not torch.musa.is_available():
+        pytest.skip('test requires GPU and torch+musa')
     cfg = _get_config_module('votenet/votenet_16x8_sunrgbd-3d-10class.py')
     cfg.model.train_cfg = None
     model = build_model(cfg.model, test_cfg=cfg.get('test_cfg'))

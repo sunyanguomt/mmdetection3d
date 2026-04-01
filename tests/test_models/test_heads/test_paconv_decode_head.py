@@ -8,8 +8,8 @@ from mmdet3d.models.builder import build_head
 
 
 def test_paconv_decode_head_loss():
-    if not torch.cuda.is_available():
-        pytest.skip('test requires GPU and torch+cuda')
+    if not torch.musa.is_available():
+        pytest.skip('test requires GPU and torch+musa')
     paconv_decode_head_cfg = dict(
         type='PAConvHead',
         fp_channels=((768, 256, 256), (384, 256, 256), (320, 256, 128),
@@ -28,7 +28,7 @@ def test_paconv_decode_head_loss():
         ignore_index=20)
 
     self = build_head(paconv_decode_head_cfg)
-    self.cuda()
+    self.musa()
     assert isinstance(self.conv_seg, torch.nn.Conv1d)
     assert self.conv_seg.in_channels == 128
     assert self.conv_seg.out_channels == 20
@@ -44,25 +44,25 @@ def test_paconv_decode_head_loss():
 
     # test forward
     sa_xyz = [
-        torch.rand(2, 4096, 3).float().cuda(),
-        torch.rand(2, 1024, 3).float().cuda(),
-        torch.rand(2, 256, 3).float().cuda(),
-        torch.rand(2, 64, 3).float().cuda(),
-        torch.rand(2, 16, 3).float().cuda(),
+        torch.rand(2, 4096, 3).float().musa(),
+        torch.rand(2, 1024, 3).float().musa(),
+        torch.rand(2, 256, 3).float().musa(),
+        torch.rand(2, 64, 3).float().musa(),
+        torch.rand(2, 16, 3).float().musa(),
     ]
     sa_features = [
-        torch.rand(2, 6, 4096).float().cuda(),
-        torch.rand(2, 64, 1024).float().cuda(),
-        torch.rand(2, 128, 256).float().cuda(),
-        torch.rand(2, 256, 64).float().cuda(),
-        torch.rand(2, 512, 16).float().cuda(),
+        torch.rand(2, 6, 4096).float().musa(),
+        torch.rand(2, 64, 1024).float().musa(),
+        torch.rand(2, 128, 256).float().musa(),
+        torch.rand(2, 256, 64).float().musa(),
+        torch.rand(2, 512, 16).float().musa(),
     ]
     input_dict = dict(sa_xyz=sa_xyz, sa_features=sa_features)
     seg_logits = self(input_dict)
     assert seg_logits.shape == torch.Size([2, 20, 4096])
 
     # test loss
-    pts_semantic_mask = torch.randint(0, 20, (2, 4096)).long().cuda()
+    pts_semantic_mask = torch.randint(0, 20, (2, 4096)).long().musa()
     losses = self.losses(seg_logits, pts_semantic_mask)
     assert losses['loss_sem_seg'].item() > 0
 
@@ -78,6 +78,6 @@ def test_paconv_decode_head_loss():
         class_weight=np.random.rand(20),
         loss_weight=1.0)
     self = build_head(paconv_decode_head_cfg)
-    self.cuda()
+    self.musa()
     losses = self.losses(seg_logits, pts_semantic_mask)
     assert losses['loss_sem_seg'].item() > 0

@@ -7,8 +7,8 @@ from mmdet3d.core.bbox import LiDARInstance3DBoxes
 
 def test_PointwiseSemanticHead():
     # PointwiseSemanticHead only support gpu version currently.
-    if not torch.cuda.is_available():
-        pytest.skip('test requires GPU and torch+cuda')
+    if not torch.musa.is_available():
+        pytest.skip('test requires GPU and torch+musa')
     from mmdet3d.models.builder import build_head
 
     head_cfg = dict(
@@ -28,10 +28,10 @@ def test_PointwiseSemanticHead():
             type='CrossEntropyLoss', use_sigmoid=True, loss_weight=1.0))
 
     self = build_head(head_cfg)
-    self.cuda()
+    self.musa()
 
     # test forward
-    voxel_features = torch.rand([4, 8], dtype=torch.float32).cuda()
+    voxel_features = torch.rand([4, 8], dtype=torch.float32).musa()
     feats_dict = self.forward(voxel_features)
     assert feats_dict['seg_preds'].shape == torch.Size(
         [voxel_features.shape[0], 1])
@@ -44,24 +44,24 @@ def test_PointwiseSemanticHead():
         [[6.56126, 0.9648336, -1.7339306], [6.8162713, -2.480431, -1.3616394],
          [11.643568, -4.744306, -1.3580885], [23.482342, 6.5036807, 0.5806964]
          ],
-        dtype=torch.float32).cuda()  # n, point_features
+        dtype=torch.float32).musa()  # n, point_features
     coordinates = torch.tensor(
         [[0, 12, 819, 131], [0, 16, 750, 136], [1, 16, 705, 232],
          [1, 35, 930, 469]],
-        dtype=torch.int32).cuda()  # n, 4(batch, ind_x, ind_y, ind_z)
+        dtype=torch.int32).musa()  # n, 4(batch, ind_x, ind_y, ind_z)
     voxel_dict = dict(voxel_centers=voxel_centers, coors=coordinates)
     gt_bboxes = [
         LiDARInstance3DBoxes(
             torch.tensor(
                 [[6.4118, -3.4305, -1.7291, 1.7033, 3.4693, 1.6197, -0.9091]],
-                dtype=torch.float32).cuda()),
+                dtype=torch.float32).musa()),
         LiDARInstance3DBoxes(
             torch.tensor(
                 [[16.9107, 9.7925, -1.9201, 1.6097, 3.2786, 1.5307, -2.4056]],
-                dtype=torch.float32).cuda())
+                dtype=torch.float32).musa())
     ]
     # batch size is 2 in the unit test
-    gt_labels = list(torch.tensor([[0], [1]], dtype=torch.int64).cuda())
+    gt_labels = list(torch.tensor([[0], [1]], dtype=torch.int64).musa())
 
     # test get_targets
     target_dict = self.get_targets(voxel_dict, gt_bboxes, gt_labels)

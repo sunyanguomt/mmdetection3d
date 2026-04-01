@@ -2,7 +2,7 @@
 import torch
 from torch import nn as nn
 
-from mmdet3d.ops import PAConv, PAConvCUDA
+from mmdet3d.ops import PAConv, PAConvMUSA
 from .builder import SA_MODULES
 from .point_sa_module import BasePointSAModule
 
@@ -151,11 +151,11 @@ class PAConvSAModule(PAConvSAModuleMSG):
 
 
 @SA_MODULES.register_module()
-class PAConvCUDASAModuleMSG(BasePointSAModule):
+class PAConvMUSASAModuleMSG(BasePointSAModule):
     r"""Point set abstraction module with multi-scale grouping (MSG) used in
     PAConv networks.
 
-    Replace the non CUDA version PAConv with CUDA implemented PAConv for
+    Replace the non MUSA version PAConv with MUSA implemented PAConv for
     efficient computation. See the `paper <https://arxiv.org/abs/2103.14635>`_
     for more details.
     """
@@ -181,7 +181,7 @@ class PAConvCUDASAModuleMSG(BasePointSAModule):
                      score_norm='softmax',
                      temp_factor=1.0,
                      last_bn=False)):
-        super(PAConvCUDASAModuleMSG, self).__init__(
+        super(PAConvMUSASAModuleMSG, self).__init__(
             num_point=num_point,
             radii=radii,
             sample_nums=sample_nums,
@@ -203,7 +203,7 @@ class PAConvCUDASAModuleMSG(BasePointSAModule):
         # in PAConv, bias only exists in ScoreNet
         scorenet_cfg['bias'] = bias
 
-        # we need to manually concat xyz for CUDA implemented PAConv
+        # we need to manually concat xyz for MUSA implemented PAConv
         self.use_xyz = use_xyz
 
         for i in range(len(self.mlp_channels)):
@@ -213,12 +213,12 @@ class PAConvCUDASAModuleMSG(BasePointSAModule):
 
             num_kernels = paconv_num_kernels[i]
 
-            # can't use `nn.Sequential` for PAConvCUDA because its input and
+            # can't use `nn.Sequential` for PAConvMUSA because its input and
             # output have different shapes
             mlp = nn.ModuleList()
             for i in range(len(mlp_channel) - 1):
                 mlp.append(
-                    PAConvCUDA(
+                    PAConvMUSA(
                         mlp_channel[i],
                         mlp_channel[i + 1],
                         num_kernels[i],
@@ -278,8 +278,8 @@ class PAConvCUDASAModuleMSG(BasePointSAModule):
                 grouped_new_features = self.mlps[i][j](
                     (new_features, grouped_xyz, grouped_idx.long()))[0]
 
-                # different from PointNet++ and non CUDA version of PAConv
-                # CUDA version of PAConv needs to aggregate local features
+                # different from PointNet++ and non MUSA version of PAConv
+                # MUSA version of PAConv needs to aggregate local features
                 # every time after it passes through a Conv layer
                 # in order to transform to valid input shape
                 # (B, out_c, num_point)
@@ -296,11 +296,11 @@ class PAConvCUDASAModuleMSG(BasePointSAModule):
 
 
 @SA_MODULES.register_module()
-class PAConvCUDASAModule(PAConvCUDASAModuleMSG):
+class PAConvMUSASAModule(PAConvMUSASAModuleMSG):
     r"""Point set abstraction module with single-scale grouping (SSG) used in
     PAConv networks.
 
-    Replace the non CUDA version PAConv with CUDA implemented PAConv for
+    Replace the non MUSA version PAConv with MUSA implemented PAConv for
     efficient computation. See the `paper <https://arxiv.org/abs/2103.14635>`_
     for more details.
     """
@@ -324,7 +324,7 @@ class PAConvCUDASAModule(PAConvCUDASAModuleMSG):
                      score_norm='softmax',
                      temp_factor=1.0,
                      last_bn=False)):
-        super(PAConvCUDASAModule, self).__init__(
+        super(PAConvMUSASAModule, self).__init__(
             mlp_channels=[mlp_channels],
             paconv_num_kernels=[paconv_num_kernels],
             num_point=num_point,

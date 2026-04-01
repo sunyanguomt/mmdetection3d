@@ -10,7 +10,7 @@ def main():
     parser.add_argument('config', help='Config file')
     parser.add_argument('checkpoint', help='Checkpoint file')
     parser.add_argument(
-        '--device', default='cuda:0', help='Device used for inference')
+        '--device', default='musa:0', help='Device used for inference')
     parser.add_argument(
         '--score-thr', type=float, default=0.0, help='bbox score threshold')
     parser.add_argument(

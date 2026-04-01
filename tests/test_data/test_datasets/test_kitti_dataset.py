@@ -210,8 +210,8 @@ def test_getitem():
 
 
 def test_evaluate():
-    if not torch.cuda.is_available():
-        pytest.skip('test requires GPU and torch+cuda')
+    if not torch.musa.is_available():
+        pytest.skip('test requires GPU and torch+musa')
     data_root, ann_file, classes, pts_prefix, \
         pipeline, modality, split = _generate_kitti_dataset_config()
     kitti_dataset = KittiDataset(data_root, ann_file, split, pts_prefix,

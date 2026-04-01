@@ -32,7 +32,7 @@ class BallQuery(Function):
 
         B, N, _ = xyz.size()
         npoint = center_xyz.size(1)
-        idx = torch.cuda.IntTensor(B, npoint, sample_num).zero_()
+        idx = torch.musa.IntTensor(B, npoint, sample_num).zero_()
 
         ball_query_ext.ball_query_wrapper(B, N, npoint, min_radius, max_radius,
                                           sample_num, center_xyz, xyz, idx)

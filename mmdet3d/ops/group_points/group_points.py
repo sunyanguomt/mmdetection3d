@@ -194,7 +194,7 @@ class GroupingOperation(Function):
 
         B, nfeatures, nsample = indices.size()
         _, C, N = features.size()
-        output = torch.cuda.FloatTensor(B, C, nfeatures, nsample)
+        output = torch.musa.FloatTensor(B, C, nfeatures, nsample)
 
         group_points_ext.forward(B, C, N, nfeatures, nsample, features,
                                  indices, output)
@@ -217,7 +217,7 @@ class GroupingOperation(Function):
         idx, N = ctx.for_backwards
 
         B, C, npoint, nsample = grad_out.size()
-        grad_features = torch.cuda.FloatTensor(B, C, N).zero_()
+        grad_features = torch.musa.FloatTensor(B, C, N).zero_()
 
         grad_out_data = grad_out.data.contiguous()
         group_points_ext.backward(B, C, N, npoint, nsample, grad_out_data, idx,

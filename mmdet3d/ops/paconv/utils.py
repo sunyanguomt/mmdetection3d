@@ -19,9 +19,9 @@ def calc_euclidian_dist(xyz1, xyz2):
 
 def assign_score(scores, point_features):
     """Perform weighted sum to aggregate output features according to scores.
-    This function is used in non-CUDA version of PAConv.
+    This function is used in non-MUSA version of PAConv.
 
-    Compared to the cuda op assigh_score_withk, this pytorch implementation
+    Compared to the musa op assigh_score_withk, this pytorch implementation
         pre-computes output features for the neighbors of all centers, and then
         performs aggregation. It consumes more GPU memories.
 
@@ -45,7 +45,7 @@ def assign_score(scores, point_features):
 
 def assign_kernel_withoutk(features, kernels, M):
     """Pre-compute features with weight matrices in weight bank. This function
-    is used before cuda op assign_score_withk in CUDA version PAConv.
+    is used before musa op assign_score_withk in MUSA version PAConv.
 
     Args:
         features (torch.Tensor): (B, in_dim, N), input features of all points.

@@ -5,7 +5,7 @@ from mmcv.cnn import (ConvModule, build_activation_layer, build_norm_layer,
 from torch import nn as nn
 from torch.nn import functional as F
 
-from .assign_score import assign_score_withk as assign_score_cuda
+from .assign_score import assign_score_withk as assign_score_musa
 from .utils import assign_kernel_withoutk, assign_score, calc_euclidian_dist
 
 
@@ -104,7 +104,7 @@ class ScoreNet(nn.Module):
 
 
 class PAConv(nn.Module):
-    """Non-CUDA version of PAConv.
+    """Non-MUSA version of PAConv.
 
     PAConv stores a trainable weight bank containing several kernel weights.
     Given input points and features, it computes coefficient scores to assemble
@@ -302,8 +302,8 @@ class PAConv(nn.Module):
         return (new_features, points_xyz)
 
 
-class PAConvCUDA(PAConv):
-    """CUDA version of PAConv that implements a cuda op to efficiently perform
+class PAConvMUSA(PAConv):
+    """MUSA version of PAConv that implements a musa op to efficiently perform
     kernel assembling.
 
     Different from vanilla PAConv, the input features of this function is not
@@ -327,7 +327,7 @@ class PAConvCUDA(PAConv):
                      score_norm='softmax',
                      temp_factor=1.0,
                      last_bn=False)):
-        super(PAConvCUDA, self).__init__(
+        super(PAConvMUSA, self).__init__(
             in_channels=in_channels,
             out_channels=out_channels,
             num_kernels=num_kernels,
@@ -339,7 +339,7 @@ class PAConvCUDA(PAConv):
             scorenet_cfg=scorenet_cfg)
 
         assert self.kernel_input == 'w_neighbor', \
-            'CUDA implemented PAConv only supports w_neighbor kernel_input'
+            'MUSA implemented PAConv only supports w_neighbor kernel_input'
 
     def forward(self, inputs):
         """Forward.
@@ -349,7 +349,7 @@ class PAConvCUDA(PAConv):
 
                 - features (torch.Tensor): (B, in_c, N)
                     Features of all points in the current point cloud.
-                    Different from non-CUDA version PAConv, here the features
+                    Different from non-MUSA version PAConv, here the features
                         are not grouped by each center to form a K dim.
                 - points_xyz (torch.Tensor): (B, 3, npoint, K)
                     Coordinates of the grouped points.
@@ -376,8 +376,8 @@ class PAConvCUDA(PAConv):
         point_feat, center_feat = assign_kernel_withoutk(
             features, self.weight_bank, self.num_kernels)
 
-        # aggregate features using custom cuda op
-        new_features = assign_score_cuda(
+        # aggregate features using custom musa op
+        new_features = assign_score_musa(
             scores, point_feat, center_feat, points_idx,
             'sum').contiguous()  # [B, out_c, npoint, K]
 

@@ -943,8 +943,8 @@ def test_boxes3d_overlaps():
     ComandLine:
         xdoctest tests/test_box3d.py::test_boxes3d_overlaps zero
     """
-    if not torch.cuda.is_available():
-        pytest.skip('test requires GPU and torch+cuda')
+    if not torch.musa.is_available():
+        pytest.skip('test requires GPU and torch+musa')
 
     # Test LiDAR boxes 3D overlaps
     boxes1_tensor = torch.tensor(
@@ -952,20 +952,20 @@ def test_boxes3d_overlaps():
          [8.9, -2.5, -1.6, 1.54, 4.01, 1.57, 1.5215927],
          [28.3, 0.5, -1.3, 1.47, 2.23, 1.48, 4.7115927],
          [31.3, -8.2, -1.6, 1.74, 3.77, 1.48, 0.35]],
-        device='cuda')
+        device='musa')
     boxes1 = LiDARInstance3DBoxes(boxes1_tensor)
 
     boxes2_tensor = torch.tensor([[1.2, -3.0, -1.9, 1.8, 3.4, 1.7, 1.9],
                                   [8.1, -2.9, -1.8, 1.5, 4.1, 1.6, 1.8],
                                   [31.3, -8.2, -1.6, 1.74, 3.77, 1.48, 0.35],
                                   [20.1, -28.5, -1.9, 1.6, 3.5, 1.4, 5.1]],
-                                 device='cuda')
+                                 device='musa')
     boxes2 = LiDARInstance3DBoxes(boxes2_tensor)
 
     expected_iou_tensor = torch.tensor(
         [[0.3710, 0.0000, 0.0000, 0.0000], [0.0000, 0.3322, 0.0000, 0.0000],
          [0.0000, 0.0000, 0.0000, 0.0000], [0.0000, 0.0000, 1.0000, 0.0000]],
-        device='cuda')
+        device='musa')
     overlaps_3d_iou = boxes1.overlaps(boxes1, boxes2)
     assert torch.allclose(
         expected_iou_tensor, overlaps_3d_iou, rtol=1e-4, atol=1e-7)
@@ -973,7 +973,7 @@ def test_boxes3d_overlaps():
     expected_iof_tensor = torch.tensor(
         [[0.5582, 0.0000, 0.0000, 0.0000], [0.0000, 0.5025, 0.0000, 0.0000],
          [0.0000, 0.0000, 0.0000, 0.0000], [0.0000, 0.0000, 1.0000, 0.0000]],
-        device='cuda')
+        device='musa')
     overlaps_3d_iof = boxes1.overlaps(boxes1, boxes2, mode='iof')
     assert torch.allclose(
         expected_iof_tensor, overlaps_3d_iof, rtol=1e-4, atol=1e-7)
@@ -1201,11 +1201,11 @@ def test_depth_boxes3d():
     torch.allclose(boxes.corners, expected_tensor)
 
     # test points in boxes
-    if torch.cuda.is_available():
-        box_idxs_of_pts = boxes.points_in_boxes(points.cuda())
+    if torch.musa.is_available():
+        box_idxs_of_pts = boxes.points_in_boxes(points.musa())
         expected_idxs_of_pts = torch.tensor(
             [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0]],
-            device='cuda:0',
+            device='musa:0',
             dtype=torch.int32)
         assert torch.all(box_idxs_of_pts == expected_idxs_of_pts)
 

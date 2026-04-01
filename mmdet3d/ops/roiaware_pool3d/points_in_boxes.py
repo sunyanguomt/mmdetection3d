@@ -4,7 +4,7 @@ from . import roiaware_pool3d_ext
 
 
 def points_in_boxes_gpu(points, boxes):
-    """Find points that are in boxes (CUDA)
+    """Find points that are in boxes (MUSA)
 
     Args:
         points (torch.Tensor): [B, M, 3], [x, y, z] in LiDAR coordinate
@@ -31,7 +31,7 @@ def points_in_boxes_gpu(points, boxes):
 
     # If manually put the tensor 'points' or 'boxes' on a device
     # which is not the current device, some temporary variables
-    # will be created on the current device in the cuda op,
+    # will be created on the current device in the musa op,
     # and the output will be incorrect.
     # Therefore, we force the current device to be the same
     # as the device of the tensors if it was not.
@@ -40,8 +40,8 @@ def points_in_boxes_gpu(points, boxes):
     points_device = points.get_device()
     assert points_device == boxes.get_device(), \
         'Points and boxes should be put on the same device'
-    if torch.cuda.current_device() != points_device:
-        torch.cuda.set_device(points_device)
+    if torch.musa.current_device() != points_device:
+        torch.musa.set_device(points_device)
 
     roiaware_pool3d_ext.points_in_boxes_gpu(boxes.contiguous(),
                                             points.contiguous(),
@@ -83,7 +83,7 @@ def points_in_boxes_cpu(points, boxes):
 
 
 def points_in_boxes_batch(points, boxes):
-    """Find points that are in boxes (CUDA)
+    """Find points that are in boxes (MUSA)
 
     Args:
         points (torch.Tensor): [B, M, 3], [x, y, z] in LiDAR coordinate
@@ -113,8 +113,8 @@ def points_in_boxes_batch(points, boxes):
     points_device = points.get_device()
     assert points_device == boxes.get_device(), \
         'Points and boxes should be put on the same device'
-    if torch.cuda.current_device() != points_device:
-        torch.cuda.set_device(points_device)
+    if torch.musa.current_device() != points_device:
+        torch.musa.set_device(points_device)
 
     roiaware_pool3d_ext.points_in_boxes_batch(boxes.contiguous(),
                                               points.contiguous(),

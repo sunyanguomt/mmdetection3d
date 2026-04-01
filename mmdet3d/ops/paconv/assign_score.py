@@ -8,7 +8,7 @@ class AssignScoreWithK(Function):
     Modified from `PAConv <https://github.com/CVMI-Lab/PAConv/tree/main/
     scene_seg/lib/paconv_lib/src/gpu>`_.
 
-    This is a memory-efficient CUDA implementation of assign_scores operation,
+    This is a memory-efficient MUSA implementation of assign_scores operation,
         which first transform all point feature with weight bank, then assemble
         neighbor features with `knn_idx` and perform weighted sum of `scores`.
     See the `paper <https://arxiv.org/pdf/2103.14635.pdf>`_ appendix Sec. D for

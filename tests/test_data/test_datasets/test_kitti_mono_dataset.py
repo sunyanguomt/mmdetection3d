@@ -167,8 +167,8 @@ def test_format_results():
 
 
 def test_evaluate():
-    if not torch.cuda.is_available():
-        pytest.skip('test requires GPU and torch+cuda')
+    if not torch.musa.is_available():
+        pytest.skip('test requires GPU and torch+musa')
     root_path = 'tests/data/kitti/'
     info_file = 'tests/data/kitti/kitti_infos_mono3d.pkl'
     ann_file = 'tests/data/kitti/kitti_infos_mono3d.coco.json'

@@ -7,7 +7,7 @@ from mmdet3d.core.evaluation.indoor_eval import average_precision, indoor_eval
 
 
 def test_indoor_eval():
-    if not torch.cuda.is_available():
+    if not torch.musa.is_available():
         pytest.skip()
     from mmdet3d.core.bbox.structures import Box3DMode, DepthInstance3DBoxes
     det_infos = [{
@@ -132,7 +132,7 @@ def test_indoor_eval():
 
 
 def test_indoor_eval_less_classes():
-    if not torch.cuda.is_available():
+    if not torch.musa.is_available():
         pytest.skip()
     from mmdet3d.core.bbox.structures import Box3DMode, DepthInstance3DBoxes
     det_infos = [{

@@ -66,7 +66,7 @@ class BboxOverlaps3D(object):
         self.coordinate = coordinate
 
     def __call__(self, bboxes1, bboxes2, mode='iou'):
-        """Calculate 3D IoU using cuda implementation.
+        """Calculate 3D IoU using musa implementation.
 
         Note:
             This function calculate the IoU of 3D boxes based on their volumes.
@@ -129,7 +129,7 @@ def bbox_overlaps_nearest_3d(bboxes1,
     bboxes2 = box_type(bboxes2, box_dim=bboxes2.shape[-1])
 
     # Change the bboxes to bev
-    # box conversion and iou calculation in torch version on CUDA
+    # box conversion and iou calculation in torch version on MUSA
     # is 10x faster than that in numpy version
     bboxes1_bev = bboxes1.nearest_bev
     bboxes2_bev = bboxes2.nearest_bev
@@ -140,7 +140,7 @@ def bbox_overlaps_nearest_3d(bboxes1,
 
 
 def bbox_overlaps_3d(bboxes1, bboxes2, mode='iou', coordinate='camera'):
-    """Calculate 3D IoU using cuda implementation.
+    """Calculate 3D IoU using musa implementation.
 
     Note:
         This function calculates the IoU of 3D boxes based on their volumes.

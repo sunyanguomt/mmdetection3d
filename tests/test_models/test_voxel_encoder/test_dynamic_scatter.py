@@ -7,8 +7,8 @@ from mmdet3d.ops import DynamicScatter
 
 
 def test_dynamic_scatter():
-    if not torch.cuda.is_available():
-        pytest.skip('test requires GPU and torch+cuda')
+    if not torch.musa.is_available():
+        pytest.skip('test requires GPU and torch+musa')
 
     dsmean = DynamicScatter([0.32, 0.32, 6],
                             [-74.88, -74.88, -2, 74.88, 74.88, 4], True)
@@ -16,8 +16,8 @@ def test_dynamic_scatter():
                            [-74.88, -74.88, -2, 74.88, 74.88, 4], False)
 
     # test empty input
-    empty_feats = torch.empty(size=(0, 3), dtype=torch.float32, device='cuda')
-    empty_coors = torch.empty(size=(0, 3), dtype=torch.int32, device='cuda')
+    empty_feats = torch.empty(size=(0, 3), dtype=torch.float32, device='musa')
+    empty_coors = torch.empty(size=(0, 3), dtype=torch.int32, device='musa')
 
     empty_feats.requires_grad_()
     empty_feats_out_mean, empty_coors_out_mean = dsmean(
@@ -33,9 +33,9 @@ def test_dynamic_scatter():
 
     # test empty reduced output
     empty_o_feats = torch.rand(
-        size=(200000, 3), dtype=torch.float32, device='cuda') * 100 - 50
+        size=(200000, 3), dtype=torch.float32, device='musa') * 100 - 50
     empty_o_coors = torch.randint(
-        low=-1, high=0, size=(200000, 3), dtype=torch.int32, device='cuda')
+        low=-1, high=0, size=(200000, 3), dtype=torch.int32, device='musa')
 
     empty_o_feats.requires_grad_()
     empty_o_feats_out_mean, empty_o_coors_out_mean = dsmean(
@@ -50,9 +50,9 @@ def test_dynamic_scatter():
 
     # test non-empty input
     feats = torch.rand(
-        size=(200000, 3), dtype=torch.float32, device='cuda') * 100 - 50
+        size=(200000, 3), dtype=torch.float32, device='musa') * 100 - 50
     coors = torch.randint(
-        low=-1, high=20, size=(200000, 3), dtype=torch.int32, device='cuda')
+        low=-1, high=20, size=(200000, 3), dtype=torch.int32, device='musa')
 
     ref_voxel_coors = coors.unique(dim=0, sorted=True)
     ref_voxel_coors = ref_voxel_coors[ref_voxel_coors.min(dim=-1).values >= 0]
@@ -86,9 +86,9 @@ def test_dynamic_scatter():
 
     # test non-empty input without any point out of bound
     feats = torch.rand(
-        size=(200000, 3), dtype=torch.float32, device='cuda') * 100 - 50
+        size=(200000, 3), dtype=torch.float32, device='musa') * 100 - 50
     coors = torch.randint(
-        low=0, high=20, size=(200000, 3), dtype=torch.int32, device='cuda')
+        low=0, high=20, size=(200000, 3), dtype=torch.int32, device='musa')
 
     ref_voxel_coors = coors.unique(dim=0, sorted=True)
     ref_voxel_coors = ref_voxel_coors[ref_voxel_coors.min(dim=-1).values >= 0]
@@ -122,9 +122,9 @@ def test_dynamic_scatter():
 
     # test grad #
     feats = torch.rand(
-        size=(100, 4), dtype=torch.float32, device='cuda') * 100 - 50
+        size=(100, 4), dtype=torch.float32, device='musa') * 100 - 50
     coors = torch.randint(
-        low=-1, high=3, size=(100, 3), dtype=torch.int32, device='cuda')
+        low=-1, high=3, size=(100, 3), dtype=torch.int32, device='musa')
     feats.requires_grad_()
     gradcheck(dsmean, (feats, coors), eps=1e-2, atol=1e-2, rtol=1e-5)
     gradcheck(dsmax, (feats, coors), eps=1e-2, atol=1e-2, rtol=1e-5)

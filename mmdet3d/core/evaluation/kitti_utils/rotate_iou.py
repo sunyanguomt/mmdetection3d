@@ -7,7 +7,7 @@
 import math
 import numba
 import numpy as np
-from numba import cuda
+from numba import musa
 
 
 @numba.jit(nopython=True)
@@ -15,13 +15,13 @@ def div_up(m, n):
     return m // n + (m % n > 0)
 
 
-@cuda.jit('(float32[:], float32[:], float32[:])', device=True, inline=True)
+@musa.jit('(float32[:], float32[:], float32[:])', device=True, inline=True)
 def trangle_area(a, b, c):
     return ((a[0] - c[0]) * (b[1] - c[1]) - (a[1] - c[1]) *
             (b[0] - c[0])) / 2.0
 
 
-@cuda.jit('(float32[:], int32)', device=True, inline=True)
+@musa.jit('(float32[:], int32)', device=True, inline=True)
 def area(int_pts, num_of_inter):
     area_val = 0.0
     for i in range(num_of_inter - 2):
@@ -31,18 +31,18 @@ def area(int_pts, num_of_inter):
     return area_val
 
 
-@cuda.jit('(float32[:], int32)', device=True, inline=True)
+@musa.jit('(float32[:], int32)', device=True, inline=True)
 def sort_vertex_in_convex_polygon(int_pts, num_of_inter):
     if num_of_inter > 0:
-        center = cuda.local.array((2, ), dtype=numba.float32)
+        center = musa.local.array((2, ), dtype=numba.float32)
         center[:] = 0.0
         for i in range(num_of_inter):
             center[0] += int_pts[2 * i]
             center[1] += int_pts[2 * i + 1]
         center[0] /= num_of_inter
         center[1] /= num_of_inter
-        v = cuda.local.array((2, ), dtype=numba.float32)
-        vs = cuda.local.array((16, ), dtype=numba.float32)
+        v = musa.local.array((2, ), dtype=numba.float32)
+        vs = musa.local.array((16, ), dtype=numba.float32)
         for i in range(num_of_inter):
             v[0] = int_pts[2 * i] - center[0]
             v[1] = int_pts[2 * i + 1] - center[1]
@@ -71,15 +71,15 @@ def sort_vertex_in_convex_polygon(int_pts, num_of_inter):
                 int_pts[j * 2 + 1] = ty
 
 
-@cuda.jit(
+@musa.jit(
     '(float32[:], float32[:], int32, int32, float32[:])',
     device=True,
     inline=True)
 def line_segment_intersection(pts1, pts2, i, j, temp_pts):
-    A = cuda.local.array((2, ), dtype=numba.float32)
-    B = cuda.local.array((2, ), dtype=numba.float32)
-    C = cuda.local.array((2, ), dtype=numba.float32)
-    D = cuda.local.array((2, ), dtype=numba.float32)
+    A = musa.local.array((2, ), dtype=numba.float32)
+    B = musa.local.array((2, ), dtype=numba.float32)
+    C = musa.local.array((2, ), dtype=numba.float32)
+    D = musa.local.array((2, ), dtype=numba.float32)
 
     A[0] = pts1[2 * i]
     A[1] = pts1[2 * i + 1]
@@ -117,15 +117,15 @@ def line_segment_intersection(pts1, pts2, i, j, temp_pts):
     return False
 
 
-@cuda.jit(
+@musa.jit(
     '(float32[:], float32[:], int32, int32, float32[:])',
     device=True,
     inline=True)
 def line_segment_intersection_v1(pts1, pts2, i, j, temp_pts):
-    a = cuda.local.array((2, ), dtype=numba.float32)
-    b = cuda.local.array((2, ), dtype=numba.float32)
-    c = cuda.local.array((2, ), dtype=numba.float32)
-    d = cuda.local.array((2, ), dtype=numba.float32)
+    a = musa.local.array((2, ), dtype=numba.float32)
+    b = musa.local.array((2, ), dtype=numba.float32)
+    c = musa.local.array((2, ), dtype=numba.float32)
+    d = musa.local.array((2, ), dtype=numba.float32)
 
     a[0] = pts1[2 * i]
     a[1] = pts1[2 * i + 1]
@@ -159,7 +159,7 @@ def line_segment_intersection_v1(pts1, pts2, i, j, temp_pts):
     return True
 
 
-@cuda.jit('(float32, float32, float32[:])', device=True, inline=True)
+@musa.jit('(float32, float32, float32[:])', device=True, inline=True)
 def point_in_quadrilateral(pt_x, pt_y, corners):
     ab0 = corners[2] - corners[0]
     ab1 = corners[3] - corners[1]
@@ -178,7 +178,7 @@ def point_in_quadrilateral(pt_x, pt_y, corners):
     return abab >= abap and abap >= 0 and adad >= adap and adap >= 0
 
 
-@cuda.jit('(float32[:], float32[:], float32[:])', device=True, inline=True)
+@musa.jit('(float32[:], float32[:], float32[:])', device=True, inline=True)
 def quadrilateral_intersection(pts1, pts2, int_pts):
     num_of_inter = 0
     for i in range(4):
@@ -190,7 +190,7 @@ def quadrilateral_intersection(pts1, pts2, int_pts):
             int_pts[num_of_inter * 2] = pts2[2 * i]
             int_pts[num_of_inter * 2 + 1] = pts2[2 * i + 1]
             num_of_inter += 1
-    temp_pts = cuda.local.array((2, ), dtype=numba.float32)
+    temp_pts = musa.local.array((2, ), dtype=numba.float32)
     for i in range(4):
         for j in range(4):
             has_pts = line_segment_intersection(pts1, pts2, i, j, temp_pts)
@@ -202,7 +202,7 @@ def quadrilateral_intersection(pts1, pts2, int_pts):
     return num_of_inter
 
 
-@cuda.jit('(float32[:], float32[:])', device=True, inline=True)
+@musa.jit('(float32[:], float32[:])', device=True, inline=True)
 def rbbox_to_corners(corners, rbbox):
     # generate clockwise corners and rotate it clockwise
     angle = rbbox[4]
@@ -212,8 +212,8 @@ def rbbox_to_corners(corners, rbbox):
     center_y = rbbox[1]
     x_d = rbbox[2]
     y_d = rbbox[3]
-    corners_x = cuda.local.array((4, ), dtype=numba.float32)
-    corners_y = cuda.local.array((4, ), dtype=numba.float32)
+    corners_x = musa.local.array((4, ), dtype=numba.float32)
+    corners_y = musa.local.array((4, ), dtype=numba.float32)
     corners_x[0] = -x_d / 2
     corners_x[1] = -x_d / 2
     corners_x[2] = x_d / 2
@@ -228,7 +228,7 @@ def rbbox_to_corners(corners, rbbox):
                 1] = -a_sin * corners_x[i] + a_cos * corners_y[i] + center_y
 
 
-@cuda.jit('(float32[:], float32[:])', device=True, inline=True)
+@musa.jit('(float32[:], float32[:])', device=True, inline=True)
 def inter(rbbox1, rbbox2):
     """Compute intersection of two rotated boxes.
 
@@ -239,9 +239,9 @@ def inter(rbbox1, rbbox2):
     Returns:
         float: Intersection of two rotated boxes.
     """
-    corners1 = cuda.local.array((8, ), dtype=numba.float32)
-    corners2 = cuda.local.array((8, ), dtype=numba.float32)
-    intersection_corners = cuda.local.array((16, ), dtype=numba.float32)
+    corners1 = musa.local.array((8, ), dtype=numba.float32)
+    corners2 = musa.local.array((8, ), dtype=numba.float32)
+    intersection_corners = musa.local.array((16, ), dtype=numba.float32)
 
     rbbox_to_corners(corners1, rbbox1)
     rbbox_to_corners(corners2, rbbox2)
@@ -254,7 +254,7 @@ def inter(rbbox1, rbbox2):
     return area(intersection_corners, num_intersection)
 
 
-@cuda.jit('(float32[:], float32[:], int32)', device=True, inline=True)
+@musa.jit('(float32[:], float32[:], int32)', device=True, inline=True)
 def devRotateIoUEval(rbox1, rbox2, criterion=-1):
     """Compute rotated iou on device.
 
@@ -282,7 +282,7 @@ def devRotateIoUEval(rbox1, rbox2, criterion=-1):
         return area_inter
 
 
-@cuda.jit(
+@musa.jit(
     '(int64, int64, float32[:], float32[:], float32[:], int32)',
     fastmath=False)
 def rotate_iou_kernel_eval(N,
@@ -305,13 +305,13 @@ def rotate_iou_kernel_eval(N,
             1 indicate `area_inter / area2`.
     """
     threadsPerBlock = 8 * 8
-    row_start = cuda.blockIdx.x
-    col_start = cuda.blockIdx.y
-    tx = cuda.threadIdx.x
+    row_start = musa.blockIdx.x
+    col_start = musa.blockIdx.y
+    tx = musa.threadIdx.x
     row_size = min(N - row_start * threadsPerBlock, threadsPerBlock)
     col_size = min(K - col_start * threadsPerBlock, threadsPerBlock)
-    block_boxes = cuda.shared.array(shape=(64 * 5, ), dtype=numba.float32)
-    block_qboxes = cuda.shared.array(shape=(64 * 5, ), dtype=numba.float32)
+    block_boxes = musa.shared.array(shape=(64 * 5, ), dtype=numba.float32)
+    block_qboxes = musa.shared.array(shape=(64 * 5, ), dtype=numba.float32)
 
     dev_query_box_idx = threadsPerBlock * col_start + tx
     dev_box_idx = threadsPerBlock * row_start + tx
@@ -327,7 +327,7 @@ def rotate_iou_kernel_eval(N,
         block_boxes[tx * 5 + 2] = dev_boxes[dev_box_idx * 5 + 2]
         block_boxes[tx * 5 + 3] = dev_boxes[dev_box_idx * 5 + 3]
         block_boxes[tx * 5 + 4] = dev_boxes[dev_box_idx * 5 + 4]
-    cuda.syncthreads()
+    musa.syncthreads()
     if tx < row_size:
         for i in range(col_size):
             offset = (
@@ -340,7 +340,7 @@ def rotate_iou_kernel_eval(N,
 
 def rotate_iou_gpu_eval(boxes, query_boxes, criterion=-1, device_id=0):
     """Rotated box iou running in gpu. 500x faster than cpu version (take 5ms
-    in one example with numba.cuda code). convert from [this project](
+    in one example with numba.musa code). convert from [this project](
     https://github.com/hongzhenwang/RRPN-revise/tree/master/lib/rotation).
 
     Args:
@@ -364,14 +364,14 @@ def rotate_iou_gpu_eval(boxes, query_boxes, criterion=-1, device_id=0):
     if N == 0 or K == 0:
         return iou
     threadsPerBlock = 8 * 8
-    cuda.select_device(device_id)
+    musa.select_device(device_id)
     blockspergrid = (div_up(N, threadsPerBlock), div_up(K, threadsPerBlock))
 
-    stream = cuda.stream()
+    stream = musa.stream()
     with stream.auto_synchronize():
-        boxes_dev = cuda.to_device(boxes.reshape([-1]), stream)
-        query_boxes_dev = cuda.to_device(query_boxes.reshape([-1]), stream)
-        iou_dev = cuda.to_device(iou.reshape([-1]), stream)
+        boxes_dev = musa.to_device(boxes.reshape([-1]), stream)
+        query_boxes_dev = musa.to_device(query_boxes.reshape([-1]), stream)
+        iou_dev = musa.to_device(iou.reshape([-1]), stream)
         rotate_iou_kernel_eval[blockspergrid, threadsPerBlock,
                                stream](N, K, boxes_dev, query_boxes_dev,
                                        iou_dev, criterion)

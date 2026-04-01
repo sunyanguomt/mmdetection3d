@@ -11,8 +11,8 @@ from mmdet3d.core.anchor import build_prior_generator
 
 
 def test_anchor_3d_range_generator():
-    if torch.cuda.is_available():
-        device = 'cuda'
+    if torch.musa.is_available():
+        device = 'musa'
     else:
         device = 'cpu'
     anchor_generator_cfg = dict(
@@ -44,8 +44,8 @@ def test_anchor_3d_range_generator():
 
 
 def test_aligned_anchor_generator():
-    if torch.cuda.is_available():
-        device = 'cuda'
+    if torch.musa.is_available():
+        device = 'musa'
     else:
         device = 'cpu'
 
@@ -185,8 +185,8 @@ def test_aligned_anchor_generator():
 
 
 def test_aligned_anchor_generator_per_cls():
-    if torch.cuda.is_available():
-        device = 'cuda'
+    if torch.musa.is_available():
+        device = 'musa'
     else:
         device = 'cpu'
 

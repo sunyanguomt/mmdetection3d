@@ -59,10 +59,10 @@ def test_voxelization():
             points[indices] == expected_coors[i][:num_points_current_voxel])
         assert num_points_current_voxel == expected_num_points_per_voxel[i]
 
-    if not torch.cuda.is_available():
-        pytest.skip('test requires GPU and torch+cuda')
+    if not torch.musa.is_available():
+        pytest.skip('test requires GPU and torch+musa')
     # test hard_voxelization on gpu
-    points = torch.tensor(points).contiguous().to(device='cuda:0')
+    points = torch.tensor(points).contiguous().to(device='musa:0')
     coors, voxels, num_points_per_voxel = hard_voxelization.forward(points)
     coors = coors.cpu().detach().numpy()
     voxels = voxels.cpu().detach().numpy()
@@ -85,8 +85,8 @@ def test_voxelization():
 
 
 def test_voxelization_nondeterministic():
-    if not torch.cuda.is_available():
-        pytest.skip('test requires GPU and torch+cuda')
+    if not torch.musa.is_available():
+        pytest.skip('test requires GPU and torch+musa')
 
     voxel_size = [0.5, 0.5, 0.5]
     point_cloud_range = [0, -40, -3, 70.4, 40, 1]
@@ -113,7 +113,7 @@ def test_voxelization_nondeterministic():
         deterministic=False)
 
     # test hard_voxelization (non-deterministic version) on gpu
-    points = torch.tensor(points).contiguous().to(device='cuda:0')
+    points = torch.tensor(points).contiguous().to(device='musa:0')
     voxels, coors, num_points_per_voxel = hard_voxelization.forward(points)
     coors = coors.cpu().detach().numpy().tolist()
     voxels = voxels.cpu().detach().numpy().tolist()
@@ -149,7 +149,7 @@ def test_voxelization_nondeterministic():
 
     # test hard_voxelization (non-deterministic version) on gpu
     # with all input point in range
-    points = torch.tensor(points).contiguous().to(device='cuda:0')[:max_voxels]
+    points = torch.tensor(points).contiguous().to(device='musa:0')[:max_voxels]
     coors_all = dynamic_voxelization.forward(points)
     valid_mask = coors_all.ge(0).all(-1)
     points = points[valid_mask]

@@ -38,7 +38,7 @@ class _dynamic_scatter(Function):
         (feats, voxel_feats, point2voxel_map,
          voxel_points_count) = ctx.saved_tensors
         grad_feats = torch.zeros_like(feats)
-        # TODO: whether to use index put or use cuda_backward
+        # TODO: whether to use index put or use musa_backward
         # To use index put, need point to voxel index
         dynamic_point_to_voxel_backward(grad_feats,
                                         grad_voxel_feats.contiguous(), feats,

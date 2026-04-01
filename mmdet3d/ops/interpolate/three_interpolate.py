@@ -29,7 +29,7 @@ class ThreeInterpolate(Function):
         B, c, m = features.size()
         n = indices.size(1)
         ctx.three_interpolate_for_backward = (indices, weight, m)
-        output = torch.cuda.FloatTensor(B, c, n)
+        output = torch.musa.FloatTensor(B, c, n)
 
         interpolate_ext.three_interpolate_wrapper(B, c, m, n, features,
                                                   indices, weight, output)
@@ -50,7 +50,7 @@ class ThreeInterpolate(Function):
         idx, weight, m = ctx.three_interpolate_for_backward
         B, c, n = grad_out.size()
 
-        grad_features = torch.cuda.FloatTensor(B, c, m).zero_()
+        grad_features = torch.musa.FloatTensor(B, c, m).zero_()
         grad_out_data = grad_out.data.contiguous()
 
         interpolate_ext.three_interpolate_grad_wrapper(B, c, n, m,

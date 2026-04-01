@@ -123,8 +123,8 @@ def test_getitem():
 
 
 def test_evaluate():
-    if not torch.cuda.is_available():
-        pytest.skip('test requires GPU and torch+cuda')
+    if not torch.musa.is_available():
+        pytest.skip('test requires GPU and torch+musa')
     from mmdet3d.core.bbox import LiDARInstance3DBoxes
     data_root, ann_file, classes, pts_prefix, pipeline, \
         modality, split = _generate_waymo_val_dataset_config()
@@ -222,8 +222,8 @@ def test_show():
 
 
 def test_format_results():
-    if not torch.cuda.is_available():
-        pytest.skip('test requires GPU and torch+cuda')
+    if not torch.musa.is_available():
+        pytest.skip('test requires GPU and torch+musa')
     from mmdet3d.core.bbox import LiDARInstance3DBoxes
     data_root, ann_file, classes, pts_prefix, pipeline, \
         modality, split = _generate_waymo_val_dataset_config()

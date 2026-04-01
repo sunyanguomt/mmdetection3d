@@ -8,8 +8,8 @@ from mmdet3d.core.evaluation.kitti_utils.eval import (do_eval, eval_class,
 
 
 def test_do_eval():
-    if not torch.cuda.is_available():
-        pytest.skip('test requires GPU and CUDA')
+    if not torch.musa.is_available():
+        pytest.skip('test requires GPU and MUSA')
     gt_name = np.array(
         ['Pedestrian', 'Cyclist', 'Car', 'Car', 'Car', 'DontCare', 'DontCare'])
     gt_truncated = np.array([0., 0., 0., -1., -1., -1., -1.])
@@ -111,8 +111,8 @@ def test_do_eval():
 
 
 def test_kitti_eval():
-    if not torch.cuda.is_available():
-        pytest.skip('test requires GPU and CUDA')
+    if not torch.musa.is_available():
+        pytest.skip('test requires GPU and MUSA')
     gt_name = np.array(
         ['Pedestrian', 'Cyclist', 'Car', 'Car', 'Car', 'DontCare', 'DontCare'])
     gt_truncated = np.array([0., 0., 0., -1., -1., -1., -1.])

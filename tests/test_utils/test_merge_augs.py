@@ -8,8 +8,8 @@ from mmdet3d.core.bbox import DepthInstance3DBoxes
 
 
 def test_merge_aug_bboxes_3d():
-    if not torch.cuda.is_available():
-        pytest.skip('test requires GPU and torch+cuda')
+    if not torch.musa.is_available():
+        pytest.skip('test requires GPU and torch+musa')
     img_meta_0 = dict(
         pcd_horizontal_flip=False,
         pcd_vertical_flip=True,
@@ -28,7 +28,7 @@ def test_merge_aug_bboxes_3d():
             [[1.0473, 4.1687, -1.2317, 2.3021, 1.8876, 1.9696, 1.6956],
              [2.5831, 4.8117, -1.2733, 0.5852, 0.8832, 0.9733, 1.6500],
              [-1.0864, 1.9045, -1.2000, 0.7128, 1.5631, 2.1045, 0.1022]],
-            device='cuda'))
+            device='musa'))
     labels_3d = torch.tensor([0, 7, 6])
     scores_3d = torch.tensor([0.5, 1.0, 1.0])
     aug_result = dict(

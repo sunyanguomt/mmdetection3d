@@ -152,7 +152,7 @@ log_config = dict(
     hooks=[dict(type='TextLoggerHook'),
            dict(type='TensorboardLoggerHook')])
 evaluation = dict(interval=1)
-dist_params = dict(backend='nccl')
+dist_params = dict(backend='mccl')
 find_unused_parameters = True  # only 1 of 4 FPN outputs is used
 log_level = 'INFO'
 load_from = None

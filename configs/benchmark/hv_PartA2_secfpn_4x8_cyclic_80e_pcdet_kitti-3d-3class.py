@@ -323,7 +323,7 @@ log_config = dict(
 # yapf:enable
 # runtime settings
 runner = dict(type='EpochBasedRunner', max_epochs=80)
-dist_params = dict(backend='nccl', port=29506)
+dist_params = dict(backend='mccl', port=29506)
 log_level = 'INFO'
 find_unused_parameters = True
 work_dir = './work_dirs/parta2_secfpn_80e'
