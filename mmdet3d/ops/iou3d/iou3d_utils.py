@@ -1,6 +1,6 @@
 import torch
 
-from . import iou3d_musa
+from . import iou3d_cuda as iou3d_musa
 
 
 def boxes_iou_bev(boxes_a, boxes_b):

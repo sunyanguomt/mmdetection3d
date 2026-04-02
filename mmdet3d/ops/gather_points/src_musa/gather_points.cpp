@@ -4,13 +4,14 @@
 
 #include <vector>
 
+
 int gather_points_wrapper(int b, int c, int n, int npoints,
                           at::Tensor points_tensor, at::Tensor idx_tensor,
                           at::Tensor out_tensor);
 
 void gather_points_kernel_launcher(int b, int c, int n, int npoints,
                                    const float *points, const int *idx,
-                                   float *out, cudaStream_t stream);
+                                   float *out, musaStream_t stream);
 
 int gather_points_grad_wrapper(int b, int c, int n, int npoints,
                                at::Tensor grad_out_tensor,
@@ -20,7 +21,7 @@ int gather_points_grad_wrapper(int b, int c, int n, int npoints,
 void gather_points_grad_kernel_launcher(int b, int c, int n, int npoints,
                                         const float *grad_out, const int *idx,
                                         float *grad_points,
-                                        cudaStream_t stream);
+                                        musaStream_t stream);
 
 int gather_points_wrapper(int b, int c, int n, int npoints,
                           at::Tensor points_tensor, at::Tensor idx_tensor,
@@ -29,7 +30,7 @@ int gather_points_wrapper(int b, int c, int n, int npoints,
   const int *idx = idx_tensor.data_ptr<int>();
   float *out = out_tensor.data_ptr<float>();
 
-  cudaStream_t stream = at::musa::getCurrentCUDAStream().stream();
+  musaStream_t stream = at::musa::getCurrentMUSAStream().stream();
   gather_points_kernel_launcher(b, c, n, npoints, points, idx, out, stream);
   return 1;
 }
@@ -42,7 +43,7 @@ int gather_points_grad_wrapper(int b, int c, int n, int npoints,
   const int *idx = idx_tensor.data_ptr<int>();
   float *grad_points = grad_points_tensor.data_ptr<float>();
 
-  cudaStream_t stream = at::musa::getCurrentCUDAStream().stream();
+  musaStream_t stream = at::musa::getCurrentMUSAStream().stream();
   gather_points_grad_kernel_launcher(b, c, n, npoints, grad_out, idx,
                                      grad_points, stream);
   return 1;

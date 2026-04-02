@@ -4,11 +4,15 @@ import os
 import shutil
 import sys
 import torch
+import torch_musa
 import warnings
 from os import path as osp
-from torch_musa.utils.musa_extension import (BuildExtension, CppExtension,
-                                       MUSAExtension)
-
+if os.getenv('FORCE_MUSA', '0') == '1':
+    from torch_musa.utils.musa_extension import (BuildExtension, MUSAExtension)
+else:
+    from torch.utils.cpp_extension import BuildExtension
+    from torch.utils.cpp_extension import CppExtension, CUDAExtension
+from pkg_resources import DistributionNotFound, get_distribution, parse_version
 
 def readme():
     with open('README.md', encoding='utf-8') as f:
@@ -42,14 +46,26 @@ def make_musa_ext(name,
     extra_compile_args = {'cxx': [] + extra_args}
 
     if torch.musa.is_available() or os.getenv('FORCE_MUSA', '0') == '1':
-        define_macros += [('WITH_MUSA', None)]
-        extension = MUSAExtension
-        extra_compile_args['mcc'] = extra_args + [
-            '-D__MUSA_NO_HALF_OPERATORS__',
-            '-D__MUSA_NO_HALF_CONVERSIONS__',
-            '-D__MUSA_NO_HALF2_OPERATORS__',
-        ]
         sources += sources_musa
+        sources = [s.replace('src', 'src_musa') for s in sources]
+        sources_new = []
+        for source in sources:
+            if source.endswith('.cu'):
+                source_new = source.split('.')[0] + '.mu'
+            else:
+                source_new = source
+            sources_new.append(source_new)
+        sources = sources_new
+        extra_include_path = [s.replace('include', 'include_musa') for s in extra_include_path]
+        from torch_musa.testing import get_musa_arch
+        define_macros += [('MMCV_WITH_MUSA', None),
+                            ('MUSA_ARCH', str(get_musa_arch()))]
+        os.environ['MUSA_ARCH'] = str(get_musa_arch())
+        extension = MUSAExtension
+        if parse_version(torch_musa.__version__.split("+")[0]) > parse_version('2.0.0'):
+            define_macros += [('USE_NEW_MUSA', '1')]
+        else:
+            define_macros += [('USE_NEW_MUSA', '0')]
     else:
         print('Compiling {} without MUSA'.format(name))
         extension = CppExtension
@@ -212,8 +228,6 @@ if __name__ == '__main__':
             'Programming Language :: Python :: 3.7',
         ],
         license='Apache License 2.0',
-        setup_requires=parse_requirements('requirements/build.txt'),
-        tests_require=parse_requirements('requirements/tests.txt'),
         install_requires=parse_requirements('requirements/runtime.txt'),
         extras_require={
             'all': parse_requirements('requirements.txt'),
@@ -235,15 +249,15 @@ if __name__ == '__main__':
                 sources=[
                     'src/all.cc',
                     'src/reordering.cc',
-                    'src/reordering_musa.cu',
+                    'src/reordering_cuda.cu',
                     'src/indice.cc',
-                    'src/indice_musa.cu',
+                    'src/indice_cuda.cu',
                     'src/maxpool.cc',
-                    'src/maxpool_musa.cu',
+                    'src/maxpool_cuda.cu',
                 ],
-                extra_args=['-w', '-std=c++14']),
+                extra_args=['-w', '-std=c++17']),
             make_musa_ext(
-                name='iou3d_musa',
+                name='iou3d_cuda',
                 module='mmdet3d.ops.iou3d',
                 sources=[
                     'src/iou3d.cpp',
@@ -255,9 +269,9 @@ if __name__ == '__main__':
                 sources=[
                     'src/voxelization.cpp',
                     'src/scatter_points_cpu.cpp',
-                    'src/scatter_points_musa.cu',
+                    'src/scatter_points_cuda.cu',
                     'src/voxelization_cpu.cpp',
-                    'src/voxelization_musa.cu',
+                    'src/voxelization_cuda.cu',
                 ]),
             make_musa_ext(
                 name='roiaware_pool3d_ext',
@@ -268,45 +282,45 @@ if __name__ == '__main__':
                 ],
                 sources_musa=[
                     'src/roiaware_pool3d_kernel.cu',
-                    'src/points_in_boxes_musa.cu',
+                    'src/points_in_boxes_cuda.cu',
                 ]),
             make_musa_ext(
                 name='ball_query_ext',
                 module='mmdet3d.ops.ball_query',
                 sources=['src/ball_query.cpp'],
-                sources_musa=['src/ball_query_musa.cu']),
+                sources_musa=['src/ball_query_cuda.cu']),
             make_musa_ext(
                 name='knn_ext',
                 module='mmdet3d.ops.knn',
                 sources=['src/knn.cpp'],
-                sources_musa=['src/knn_musa.cu']),
+                sources_musa=['src/knn_cuda.cu']),
             make_musa_ext(
                 name='assign_score_withk_ext',
                 module='mmdet3d.ops.paconv',
                 sources=['src/assign_score_withk.cpp'],
-                sources_musa=['src/assign_score_withk_musa.cu']),
+                sources_musa=['src/assign_score_withk_cuda.cu']),
             make_musa_ext(
                 name='group_points_ext',
                 module='mmdet3d.ops.group_points',
                 sources=['src/group_points.cpp'],
-                sources_musa=['src/group_points_musa.cu']),
+                sources_musa=['src/group_points_cuda.cu']),
             make_musa_ext(
                 name='interpolate_ext',
                 module='mmdet3d.ops.interpolate',
                 sources=['src/interpolate.cpp'],
                 sources_musa=[
-                    'src/three_interpolate_musa.cu', 'src/three_nn_musa.cu'
+                    'src/three_interpolate_cuda.cu', 'src/three_nn_cuda.cu'
                 ]),
             make_musa_ext(
                 name='furthest_point_sample_ext',
                 module='mmdet3d.ops.furthest_point_sample',
                 sources=['src/furthest_point_sample.cpp'],
-                sources_musa=['src/furthest_point_sample_musa.cu']),
+                sources_musa=['src/furthest_point_sample_cuda.cu']),
             make_musa_ext(
                 name='gather_points_ext',
                 module='mmdet3d.ops.gather_points',
                 sources=['src/gather_points.cpp'],
-                sources_musa=['src/gather_points_musa.cu'])
+                sources_musa=['src/gather_points_cuda.cu'])
         ],
         cmdclass={'build_ext': BuildExtension},
         zip_safe=False)
